@@ -1,1 +1,31 @@
 /* You can add global styles to this file, and also import other style files */
+/*Color scheme*/
+.cs-primary-dark {
+  background: #303f9f !important;
+}
+.cs-primary {
+  background: #3f51b5 !important;
+}
+.cs-primary-light {
+  background: #c5cae9 !important;
+}
+
+.cs-text-white {
+  color: white;
+}
+
+.cs-text-light {
+  color: #bdbdbd !important;
+}
+.cs-accent {
+  background: #9e9e9e !important;
+}
+.cs-text-dark {
+  color: #212121 !important;
+}
+.cs-text-muted {
+  color: #757575 !important;
+}
+.cs-divider {
+  border-color: #bdbdbd !important;
+}
