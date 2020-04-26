@@ -54,6 +54,4 @@ import { ChooseTypeComponent } from './components/register/choose-type/choose-ty
   ],
   bootstrap: [AppComponent],
 })
-export class AppModule {
-  //recaptcha secret key: 6LdwaO0UAAAAAAzU6d79VVKYDSJM-i0QBNeo8t5J
-}
+export class AppModule {}
