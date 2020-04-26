@@ -1,6 +1,10 @@
+//dependencies
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+
+//modules
+const registration = require("./api/registration");
 
 //config
 const PORT = process.env.PORT || 3000;
@@ -9,24 +13,33 @@ const dbURI = "mongodb://127.0.0.1/PIA";
 //start server
 const app = express();
 app.listen(PORT, () => {
-  console.log(`Server is now running locally at port ${PORT}.`);
+  console.info(`[APP]: Server running @localhost:${PORT}.`);
 });
 
 //establish db connection
-mongoose.connect(
+/*mongoose.connect(
   dbURI,
   { useNewUrlParser: true, useUnifiedTopology: true },
   (err) => {
     if (err) {
       console.error("An error has occurred while connecting to MongoDB!");
-      console.log(err);
+      console.error(err);
     } else {
-      console.log("Connected to database successfully.");
+      console.info("Connected to database successfully.");
     }
   }
 );
 const db = mongoose.connection;
-db.on("error", console.error.bind(console, "[MongoDB][ERROR] "));
+db.on("error", console.error.bind(console, "[MongoDB][ERROR] "));*/
 
 //set up middleware
 app.use(cors());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
+//===============
+//    [ API ]
+//===============
+
+//registration
+app.post("/api/registration", registration.processRegistrationRequest);
