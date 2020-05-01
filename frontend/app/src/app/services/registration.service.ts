@@ -5,8 +5,8 @@ import {
   HttpErrorResponse,
 } from '@angular/common/http';
 import {
-  SendRegistrationRequest,
-  SendRegistrationResponse,
+  SendWorkerRegistrationRequest,
+  SendWorkerRegistrationResponse,
 } from '../models/registration';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -18,6 +18,7 @@ export class RegistrationService {
   private httpOptions = {
     headers: new HttpHeaders({
       'Content-Type': 'application/json',
+      Accept: 'application/json',
     }),
   };
   private root = 'http://localhost:3000';
@@ -26,27 +27,29 @@ export class RegistrationService {
 
   private errorHandler(err: HttpErrorResponse) {
     if (err.error instanceof ErrorEvent) {
-      console.error('A client-side error has occurred.', err.error.message);
+      console.error(
+        `[API]: Response @${err.url}\nCode: ${err.status}\nError-Origin: Client.\nError log:\n`,
+        err.error.message
+      );
     } else {
       console.error(
-        `A server-side error has occurred.\nCode: ${err.status}\nBody:\n${err.error}`
+        `[API]: Response @${err.url}\nCode: ${err.status}\nError-Origin: Server.\nError log:\n`,
+        err.error.message
       );
     }
 
     return throwError(
-      'FailedRequestException: Failed to retrieve a successful response from the server.'
+      'FailedRegistrationException: User registration request rejected.'
     );
   }
 
-  sendRegistrationRequest(
-    req: SendRegistrationRequest
-  ): Observable<SendRegistrationResponse> {
-    return this.http
-      .post<SendRegistrationResponse>(
-        `${this.root}/api/registration`,
-        req,
-        this.httpOptions
-      )
-      .pipe(catchError(this.errorHandler));
+  sendWorkerRegistrationRequest(
+    req: SendWorkerRegistrationRequest
+  ): Observable<SendWorkerRegistrationResponse> {
+    return this.http.post<SendWorkerRegistrationResponse>(
+      `${this.root}/api/registration/worker`,
+      req,
+      this.httpOptions
+    );
   }
 }

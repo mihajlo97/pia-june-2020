@@ -249,10 +249,24 @@
     <div
       class="alert alert-danger fade show"
       role="alert"
-      *ngIf="!formSubmitSuccess && formSubmitted"
+      *ngIf="
+        !formSubmitSuccess &&
+        formSubmitted &&
+        isUniqueUsername &&
+        !failedAuthRecaptcha
+      "
     >
-      Registration request has failed due to an internal server error, please
-      try again later.
+      The server has encountered an error while processing your registration
+      request, please try again later.
+    </div>
+    <div
+      class="alert alert-danger fade show"
+      role="alert"
+      *ngIf="formSubmitted && !isUniqueUsername && !failedAuthRecaptcha"
+    >
+      An account is already registered to the username
+      <span class="text-monospace">{{ takenUsername }}</span
+      >, please choose another one.
     </div>
   </div>
 </form>

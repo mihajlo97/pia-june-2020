@@ -1,10 +1,4 @@
-import {
-  Component,
-  OnInit,
-  ViewChild,
-  ElementRef,
-  ViewChildren,
-} from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import {
   FormBuilder,
   Validators,
@@ -14,9 +8,8 @@ import {
 } from '@angular/forms';
 import { Farmer } from 'src/app/models/users';
 import {
-  SendRegistrationRequest,
-  SendRegistrationResponse,
-  Types,
+  SendWorkerRegistrationRequest,
+  SendWorkerRegistrationResponse,
 } from 'src/app/models/registration';
 import { RegistrationService } from 'src/app/services/registration.service';
 import { RecaptchaComponent } from 'ng-recaptcha';
@@ -32,15 +25,15 @@ export class WorkerRegisterComponent implements OnInit {
   //form submission
   captchaToken = '';
   user: Farmer;
-  regRequest: SendRegistrationRequest = {
+  regRequest: SendWorkerRegistrationRequest = {
     user: null,
     token: this.captchaToken,
-    type: Types.FARMER,
   };
   //after server response
   failedAuthRecaptcha = false;
   formSubmitSuccess = false;
   formSubmitted = false;
+  takenUsername = '';
 
   //form controls
   regForm: FormGroup;
@@ -66,6 +59,7 @@ export class WorkerRegisterComponent implements OnInit {
   isInvalidBirthplace = false;
   isInvalidPhoneNumber = false;
   isInvalidEmail = false;
+  isUniqueUsername = true;
 
   //validation success flags
   validLastName: boolean;
@@ -356,38 +350,41 @@ export class WorkerRegisterComponent implements OnInit {
 
   resolveCaptcha(response: string) {
     this.captchaToken = response == null ? '' : response;
-    this.failedAuthRecaptcha = false;
+    this.failedAuthRecaptcha = response == null;
   }
 
   onSubmit(): void {
-    this.formSubmitted = false;
+    this.formSubmitted = true;
 
     let userBirthdate = new Date();
     userBirthdate.setDate(this.regForm.value.birthDateDay);
     userBirthdate.setMonth(this.regForm.value.birthDateMonth);
     userBirthdate.setFullYear(this.regForm.value.birthDateYear);
+    this.takenUsername = this.regForm.value.username;
 
+    //form request body
     this.regRequest.user = {
-      name: this.regForm.value.firstName,
-      surname: this.regForm.value.lastName,
+      name: this.regForm.value.firstName.trim(),
+      surname: this.regForm.value.lastName.trim(),
       username: this.regForm.value.username,
       password: this.regForm.value.password,
       birthdate: userBirthdate,
-      birthplace: this.regForm.value.birthPlace,
+      birthplace: this.regForm.value.birthPlace.trim(),
       cellphone: this.regForm.value.phoneNumber,
       email: this.regForm.value.email,
     };
     this.regRequest.token = this.captchaToken;
 
+    //API call
     this.registration
-      .sendRegistrationRequest(this.regRequest)
-      .subscribe((res: SendRegistrationResponse) => {
-        if (res.captcha === false) {
-          this.failedAuthRecaptcha = true;
+      .sendWorkerRegistrationRequest(this.regRequest)
+      .subscribe((res: SendWorkerRegistrationResponse) => {
+        if (res.captchaOK === false) {
           this.captchaRef.reset();
+          this.failedAuthRecaptcha = true;
         }
+        this.isUniqueUsername = res.usernameOK;
         this.formSubmitSuccess = res.success;
-        this.formSubmitted = true;
       });
   }
 }

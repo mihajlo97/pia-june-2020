@@ -1,17 +1,12 @@
 import { Farmer } from './users';
 
-export enum Types {
-  FARMER = 'farmer',
-  COMPANY = 'company',
-}
-
-export interface SendRegistrationRequest {
+export interface SendWorkerRegistrationRequest {
   user: Farmer;
   token: string;
-  type: string;
 }
 
-export interface SendRegistrationResponse {
-  captcha: boolean;
+export interface SendWorkerRegistrationResponse {
+  captchaOK: boolean;
+  usernameOK: boolean;
   success: boolean;
 }
