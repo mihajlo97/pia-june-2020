@@ -17,20 +17,22 @@ app.listen(PORT, () => {
 });
 
 //establish db connection
-/*mongoose.connect(
+mongoose.connect(
   dbURI,
   { useNewUrlParser: true, useUnifiedTopology: true },
   (err) => {
     if (err) {
-      console.error("An error has occurred while connecting to MongoDB!");
+      console.error(
+        "[APP][DB]: Database-Connection-Exception: Connection failed."
+      );
       console.error(err);
     } else {
-      console.info("Connected to database successfully.");
+      console.info("[APP][DB]: Database-Connection: Success.");
     }
   }
 );
 const db = mongoose.connection;
-db.on("error", console.error.bind(console, "[MongoDB][ERROR] "));*/
+db.on("error", console.error.bind(console, "[ERROR][DB]:\n"));
 
 //set up middleware
 app.use(cors());
@@ -42,4 +44,7 @@ app.use(express.json());
 //===============
 
 //registration
-app.post("/api/registration", registration.processRegistrationRequest);
+app.post(
+  "/api/registration/worker",
+  registration.processWorkerRegistrationRequest
+);
