@@ -48,3 +48,8 @@ app.post(
   "/api/registration/worker",
   registration.processWorkerRegistrationRequest
 );
+
+app.post(
+  "/api/registration/company",
+  registration.processCompanyRegistrationRequest
+);

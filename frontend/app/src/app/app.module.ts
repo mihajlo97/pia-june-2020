@@ -23,6 +23,7 @@ import { WorkerRegisterComponent } from './components/register/worker-register/w
 import { CompanyRegisterComponent } from './components/register/company-register/company-register.component';
 import { RegistrationService } from './services/registration.service';
 import { ChooseTypeComponent } from './components/register/choose-type/choose-type.component';
+import { RegisterSuccessComponent } from './components/register/register-success/register-success.component';
 
 @NgModule({
   declarations: [
@@ -33,6 +34,7 @@ import { ChooseTypeComponent } from './components/register/choose-type/choose-ty
     WorkerRegisterComponent,
     CompanyRegisterComponent,
     ChooseTypeComponent,
+    RegisterSuccessComponent,
   ],
   imports: [
     BrowserModule,

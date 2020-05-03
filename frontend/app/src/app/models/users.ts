@@ -10,11 +10,11 @@ export interface Farmer {
 }
 
 export interface Company {
-  fullname: string;
-  shortname: string;
-  password: string;
-  foundingdate: string;
-  location: string;
+  name: string;
+  alias: string;
+  pass: string;
+  foundingDate: Date;
+  hq: string;
   email: string;
 }
 

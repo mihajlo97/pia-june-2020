@@ -13,6 +13,7 @@ import {
 } from 'src/app/models/registration';
 import { RegistrationService } from 'src/app/services/registration.service';
 import { RecaptchaComponent } from 'ng-recaptcha';
+import { Router, ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-worker-register',
@@ -29,11 +30,13 @@ export class WorkerRegisterComponent implements OnInit {
     user: null,
     token: this.captchaToken,
   };
-  //after server response
+
+  //on server response
   failedAuthRecaptcha = false;
   formSubmitSuccess = false;
   formSubmitted = false;
   takenUsername = '';
+  isUniqueUsername = true;
 
   //form controls
   regForm: FormGroup;
@@ -41,6 +44,7 @@ export class WorkerRegisterComponent implements OnInit {
   controlLastName: AbstractControl;
   controlUsername: AbstractControl;
   controlPassword: AbstractControl;
+  controlPasswordConfirm: AbstractControl;
   controlBirthdateDay: AbstractControl;
   controlBirthdateMonth: AbstractControl;
   controlBirthdateYear: AbstractControl;
@@ -48,24 +52,25 @@ export class WorkerRegisterComponent implements OnInit {
   controlPhoneNumber: AbstractControl;
   controlEmail: AbstractControl;
 
-  //validation error flags
+  //validation failure flags
   isInvalidLastName = false;
   isInvalidFirstName = false;
   isInvalidUsername = false;
   isInvalidPassword = false;
+  isInvalidPasswordConfirm = false;
   isInvalidBirthdateDay = false;
   isInvalidBirthdateMonth = false;
   isInvalidBirthdateYear = false;
   isInvalidBirthplace = false;
   isInvalidPhoneNumber = false;
   isInvalidEmail = false;
-  isUniqueUsername = true;
 
   //validation success flags
   validLastName: boolean;
   validFirstName: boolean;
   validUsername: boolean;
   validPassword: boolean;
+  validPasswordConfirm: boolean;
   validBirthdateDay: boolean;
   validBirthdateMonth: boolean;
   validBirthdateYear: boolean;
@@ -86,10 +91,12 @@ export class WorkerRegisterComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private registration: RegistrationService
+    private registration: RegistrationService,
+    private router: Router,
+    private route: ActivatedRoute
   ) {
     this.phoneNumberRegex = new RegExp(
-      '^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-s./0-9]{6,20}$'
+      '^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-s./0-9]{9,20}$'
     );
     this.passwordRegex = new RegExp(
       '^[a-z](?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{6,}$'
@@ -97,7 +104,7 @@ export class WorkerRegisterComponent implements OnInit {
     this.passwordRegexAlt = new RegExp(
       '^[A-Z](?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{6,}$'
     );
-    this.usernameRegex = new RegExp('^[a-zA-Z0-9_]{6,32}$');
+    this.usernameRegex = new RegExp('^[a-zA-Z0-9_]{6,50}$');
 
     this.regForm = this.fb.group({
       firstName: ['', Validators.required],
@@ -109,6 +116,13 @@ export class WorkerRegisterComponent implements OnInit {
       password: [
         '',
         Validators.compose([Validators.required, this.passwordValidator()]),
+      ],
+      passwordConfirm: [
+        '',
+        Validators.compose([
+          Validators.required,
+          this.passwordConfirmValidator(),
+        ]),
       ],
       birthDateDay: [
         '25',
@@ -137,12 +151,12 @@ export class WorkerRegisterComponent implements OnInit {
     this.month = parseInt(this.regForm.get('birthDateMonth').value);
     this.year = parseInt(this.regForm.get('birthDateYear').value);
 
-    this.setupReactiveFormValidation();
+    this.bindValidationFlags();
   }
 
   ngOnInit(): void {}
 
-  setupReactiveFormValidation() {
+  bindValidationFlags() {
     //first name field
     this.controlFirstName = this.regForm.get('firstName');
     this.controlFirstName.valueChanges.subscribe(() => {
@@ -188,6 +202,18 @@ export class WorkerRegisterComponent implements OnInit {
       } else {
         this.isInvalidPassword = false;
         this.validPassword = true;
+      }
+    });
+
+    //password confirm field
+    this.controlPasswordConfirm = this.regForm.get('passwordConfirm');
+    this.controlPasswordConfirm.valueChanges.subscribe(() => {
+      if (!this.controlPasswordConfirm.valid) {
+        this.isInvalidPasswordConfirm = true;
+        this.validPasswordConfirm = false;
+      } else {
+        this.isInvalidPasswordConfirm = false;
+        this.validPasswordConfirm = true;
       }
     });
 
@@ -274,6 +300,18 @@ export class WorkerRegisterComponent implements OnInit {
     };
   }
 
+  passwordConfirmValidator(): ValidatorFn {
+    return (control: AbstractControl): { [key: string]: any } => {
+      const value = control.value;
+      if (!value) {
+        return null;
+      }
+      return this.controlPassword.valid && this.controlPassword.value === value
+        ? null
+        : { invalidPasswordConfirm: true };
+    };
+  }
+
   usernameValidator(): ValidatorFn {
     return (control: AbstractControl): { [key: string]: any } => {
       if (!control.value) {
@@ -355,6 +393,7 @@ export class WorkerRegisterComponent implements OnInit {
 
   onSubmit(): void {
     this.formSubmitted = true;
+    this.formSubmitSuccess = true;
 
     let userBirthdate = new Date();
     userBirthdate.setDate(this.regForm.value.birthDateDay);
@@ -379,6 +418,10 @@ export class WorkerRegisterComponent implements OnInit {
     this.registration
       .sendWorkerRegistrationRequest(this.regRequest)
       .subscribe((res: SendWorkerRegistrationResponse) => {
+        if (res.success) {
+          this.router.navigate(['../success'], { relativeTo: this.route });
+        }
+
         if (res.captchaOK === false) {
           this.captchaRef.reset();
           this.failedAuthRecaptcha = true;

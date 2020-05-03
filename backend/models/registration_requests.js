@@ -12,3 +12,13 @@ exports.WorkerRegistrationRequestSchema = new Schema({
   cellphone: { type: String, required: true },
   email: { type: String, required: true },
 });
+
+exports.CompanyRegistrationRequestSchema = new Schema({
+  name: { type: String, required: true },
+  alias: { type: String, required: true },
+  pass: { type: String, required: true },
+  salt: { type: String, required: true },
+  foundingDate: { type: Date, required: true },
+  hq: { type: String, required: true },
+  email: { type: String, required: true },
+});

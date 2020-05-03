@@ -1,1 +1,241 @@
-<p>company-register works!</p>
+<h5>Company registration</h5>
+<form [formGroup]="regForm" (ngSubmit)="onSubmit()">
+  <!--Company name field-->
+  <div class="form-group">
+    <label for="name"><span class="text-danger">* </span>Company name:</label>
+    <input
+      type="text"
+      class="form-control"
+      [class.is-invalid]="invalidName"
+      [class.is-valid]="validName"
+      id="name"
+      formControlName="name"
+      maxlength="50"
+      required
+    />
+    <small class="text-danger" *ngIf="invalidName">
+      This field is required for account registration.
+    </small>
+  </div>
+
+  <!--Alias field-->
+  <div class="form-group">
+    <label for="alias"><span class="text-danger">* </span>Company alias:</label>
+    <input
+      type="text"
+      class="form-control"
+      [class.is-invalid]="invalidAlias"
+      [class.is-valid]="validAlias"
+      id="alias"
+      formControlName="alias"
+      required
+    />
+    <small class="text-muted"
+      >Company alias must be unique, at least 2 characters long and can only
+      contain letters, numbers, dots, commas and spaces.</small
+    >
+    <br />
+    <small class="text-danger" *ngIf="invalidAlias">
+      Invalid alias.
+    </small>
+  </div>
+
+  <!--Password field-->
+  <div class="form-group">
+    <label for="password"><span class="text-danger">* </span>Password:</label>
+    <input
+      type="password"
+      class="form-control"
+      [class.is-invalid]="invalidPass"
+      [class.is-valid]="validPass"
+      id="password"
+      formControlName="pass"
+      required
+    />
+    <small class="text-muted"
+      >Password must be at least 7 characters long, must contain at least one
+      uppercase letter, one number, one special character (#?!@$%^&*-) and must
+      start with a letter.</small
+    >
+    <br />
+    <small class="text-danger" *ngIf="invalidPass">
+      Password does not match the required format.
+    </small>
+  </div>
+
+  <!--Password confirm field-->
+  <div class="form-group">
+    <label for="passwordConfirm"
+      ><span class="text-danger">* </span>Confirm password:</label
+    >
+    <input
+      type="password"
+      class="form-control"
+      [class.is-invalid]="invalidPassConfirm"
+      [class.is-valid]="validPassConfirm"
+      id="passwordConfirm"
+      formControlName="passConfirm"
+      required
+    />
+    <small class="text-muted">Please retype the chosen password.</small>
+    <br />
+    <small class="text-danger" *ngIf="invalidPassConfirm">
+      Passwords do not match.
+    </small>
+  </div>
+
+  <!--Birthdate fields-->
+  <div class="form-group">
+    <label for="day"
+      ><span class="text-danger">* </span>Foundation date (DD/MM/YYYY):</label
+    >
+    <div class="d-flex flex-row">
+      <input
+        type="number"
+        class="form-control"
+        [class.is-invalid]="invalidFoundingDay"
+        [class.is-valid]="validFoundingDay"
+        style="width: 7rem;"
+        id="day"
+        formControlName="foundingDay"
+        min="1"
+        max="31"
+        required
+      />
+      <input
+        type="number"
+        class="form-control"
+        style="width: 7rem; margin-left: 0.5rem;"
+        [class.is-invalid]="invalidFoundingMonth"
+        [class.is-valid]="validFoundingMonth"
+        id="month"
+        formControlName="foundingMonth"
+        min="1"
+        max="12"
+        required
+      />
+      <input
+        type="number"
+        class="form-control"
+        style="width: 10rem; margin-left: 0.5rem;"
+        [class.is-invalid]="invalidFoundingYear"
+        [class.is-valid]="validFoundingYear"
+        id="year"
+        formControlName="foundingYear"
+        min="1900"
+        [max]="currentYear"
+        required
+      />
+    </div>
+    <small
+      class="text-danger"
+      *ngIf="invalidFoundingDay || invalidFoundingMonth || invalidFoundingYear"
+    >
+      Invalid founding date.
+    </small>
+  </div>
+
+  <!--HQ field-->
+  <div class="form-group">
+    <label for="hq"
+      ><span class="text-danger">* </span>Company headquarters:</label
+    >
+    <input
+      type="text"
+      class="form-control"
+      [class.is-invalid]="invalidHQ"
+      [class.is-valid]="validHQ"
+      id="hq"
+      formControlName="hq"
+      maxlength="100"
+      required
+    />
+    <small class="text-danger" *ngIf="invalidHQ">
+      This field is required for account registration.
+    </small>
+  </div>
+
+  <!--Email field-->
+  <div class="form-group">
+    <label for="email"><span class="text-danger">* </span>Email:</label>
+    <input
+      type="text"
+      class="form-control"
+      [class.is-invalid]="invalidEmail"
+      [class.is-valid]="validEmail"
+      id="email"
+      formControlName="email"
+      placeholder="Ex: contact@company.com"
+      maxlength="100"
+      required
+    />
+    <small class="text-danger" *ngIf="invalidEmail">
+      Invalid email address.
+    </small>
+  </div>
+
+  <!--reCAPTCHA v2 prompt-->
+  <div class="form-group">
+    <label for="recaptcha"
+      ><span class="text-danger">* </span>Verification:</label
+    >
+    <re-captcha
+      (resolved)="resolveCaptcha($event)"
+      formControlName="recaptcha"
+      #recaptchaRef="reCaptcha"
+    ></re-captcha>
+    <small class="text-muted"
+      >For security reasons, please fill the above reCAPTCHA to finish your
+      account registration.</small
+    >
+    <br />
+    <small class="text-danger" *ngIf="failedAuthRecaptcha">
+      Failed to authenticate reCAPTCHA, please try again.
+    </small>
+  </div>
+
+  <div class="form-group">
+    <small class="text-muted"
+      ><span class="text-danger">* </span>Marked fields are required for account
+      registration.</small
+    >
+  </div>
+
+  <!--Submit button-->
+  <div style="text-align: center;">
+    <button
+      type="submit"
+      class="btn btn-primary"
+      style="width: 7rem;"
+      [disabled]="regForm.invalid || regForm.pristine"
+    >
+      Register
+    </button>
+  </div>
+
+  <!--Form submission results-->
+  <div class="pt-3">
+    <div
+      class="alert alert-danger fade show"
+      role="alert"
+      *ngIf="
+        !formSubmitSuccess &&
+        formSubmitted &&
+        uniqueAlias &&
+        !failedAuthRecaptcha
+      "
+    >
+      The server has encountered an error while processing your registration
+      request, please try again later.
+    </div>
+    <div
+      class="alert alert-danger fade show"
+      role="alert"
+      *ngIf="formSubmitted && !uniqueAlias && !failedAuthRecaptcha"
+    >
+      An account is already registered to the alias
+      <span class="text-monospace">{{ takenAlias }}</span
+      >, please choose another one.
+    </div>
+  </div>
+</form>

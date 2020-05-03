@@ -83,6 +83,27 @@
     </small>
   </div>
 
+  <!--Password confirm field-->
+  <div class="form-group">
+    <label for="passwordConfirm"
+      ><span class="text-danger">* </span>Confirm password:</label
+    >
+    <input
+      type="password"
+      class="form-control"
+      [class.is-invalid]="isInvalidPasswordConfirm"
+      [class.is-valid]="validPasswordConfirm"
+      id="passwordConfirm"
+      formControlName="passwordConfirm"
+      required
+    />
+    <small class="text-muted">Please retype the chosen password.</small>
+    <br />
+    <small class="text-danger" *ngIf="isInvalidPasswordConfirm">
+      Passwords do not match.
+    </small>
+  </div>
+
   <!--Birthdate fields-->
   <div class="form-group">
     <label for="birthdateD"
@@ -238,14 +259,6 @@
 
   <!--Form submission results-->
   <div class="pt-3">
-    <div
-      class="alert alert-success fade show"
-      role="alert"
-      *ngIf="formSubmitSuccess && formSubmitted"
-    >
-      Registration request has been successfully submitted and is now pending
-      administrator approval.
-    </div>
     <div
       class="alert alert-danger fade show"
       role="alert"
