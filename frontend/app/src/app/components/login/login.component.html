@@ -22,46 +22,14 @@
           required
         />
       </div>
-      <div class="form-group" *ngIf="showNewPass">
-        <small class="form-text py-2"
-          >Please enter your old password and your new password.</small
-        >
-        <label for="new-password-input">New password:</label>
-        <input
-          type="password"
-          class="form-control"
-          id="new-password-input"
-          formControlName="newPass"
-          required
-        />
-      </div>
-      <div class="form-group" *ngIf="showNewPass">
-        <label for="new-password-confirm-input">Confirm new password:</label>
-        <input
-          type="password"
-          class="form-control"
-          id="new-password-confirm-input"
-          formControlName="newPassConfirm"
-          required
-        />
-      </div>
       <div class="py-1">
         <span
           ><small
             >Don't have an account? Create a new account
-            <a href="./register">here.</a></small
+            <a routerLink="../register">here.</a></small
           ></span
         >
         <br />
-        <span>
-          <small>
-            <a class="text-primary" (click)="showNewPasswordFields()"
-              >Change password.</a
-            >
-          </small>
-        </span>
-      </div>
-      <div class="py-2">
         <small class="form-text text-danger pt-1" *ngIf="showErrorMsg"
           >Invalid credentials: Username not found or bad password.</small
         >

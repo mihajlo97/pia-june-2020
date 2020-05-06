@@ -6,12 +6,14 @@ const {
   CompanyRegistrationRequestSchema,
 } = require("../models/registration_requests");
 
-//globals
+//[CONFIG]
 const CAPTCHA_SECRET_KEY = "6LdwaO0UAAAAAAzU6d79VVKYDSJM-i0QBNeo8t5J";
+
+//[DB-COLLECTIONS]
 var WorkerRegistrationRequest = null;
 var CompanyRegistrationRequest = null;
 
-//auxilliary functions
+//[HELPER-METHODS]
 const compileSchemas = () => {
   if (WorkerRegistrationRequest == null) {
     WorkerRegistrationRequest = mongoose.model(
@@ -112,9 +114,9 @@ const persistRegistrationRequest = async (document) => {
   }
 };
 
-//API RESPONSES
+//[API-RESPONSES]
 
-//POST@api/registration/worker
+//>POST @api/registration/worker
 exports.processWorkerRegistrationRequest = async (req, res) => {
   console.info("[POST]: @api/registration/worker\nRequest:\n", req.body);
   let response = { captchaOK: false, usernameOK: false, success: false };
@@ -250,7 +252,7 @@ exports.processWorkerRegistrationRequest = async (req, res) => {
   }
 };
 
-//POST@api/registration/company
+//>POST @api/registration/company
 exports.processCompanyRegistrationRequest = async (req, res) => {
   console.info("[POST]: @api/registration/company\nRequest:\n", req.body);
   let response = { captchaOK: false, aliasOK: false, success: false };

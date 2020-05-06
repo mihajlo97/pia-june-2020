@@ -5,6 +5,7 @@ import {
   FormControl,
   Validators,
 } from '@angular/forms';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-login',
@@ -14,9 +15,8 @@ import {
 export class LoginComponent implements OnInit {
   loginForm: FormGroup;
   showErrorMsg = false;
-  showNewPass = false;
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private router: Router) {
     this.loginForm = this.fb.group({
       user: ['', Validators.required],
       pass: ['', Validators.required],
@@ -31,12 +31,6 @@ export class LoginComponent implements OnInit {
       this.showErrorMsg = true;
       this.loginForm.reset();
     }
-  }
-
-  showNewPasswordFields(): void {
-    this.showNewPass = true;
-    this.loginForm.addControl('newPass', new FormControl(''));
-    this.loginForm.addControl('newPassConfirm', new FormControl(''));
   }
 
   sendLoginRequest() {
