@@ -15,13 +15,13 @@ var CompanyRegistrationRequest = null;
 
 //[HELPER-METHODS]
 const compileSchemas = () => {
-  if (WorkerRegistrationRequest == null) {
+  if (WorkerRegistrationRequest === null) {
     WorkerRegistrationRequest = mongoose.model(
       "WorkerRegistrationRequest",
       WorkerRegistrationRequestSchema
     );
   }
-  if (CompanyRegistrationRequest == null) {
+  if (CompanyRegistrationRequest === null) {
     CompanyRegistrationRequest = mongoose.model(
       "CompanyRegistrationRequest",
       CompanyRegistrationRequestSchema
@@ -131,7 +131,7 @@ exports.processWorkerRegistrationRequest = async (req, res) => {
     req.body.user === null
   ) {
     console.info(
-      "[POST][RES]: @api/registration/worker\nAPI-Call-Result: 400.\nResult-Origin: HTTP header.\nResponse:\n",
+      "[POST][RES]: @api/registration/worker\nAPI-Call-Result: 400.\nResult-Origin: Request body.\nResponse:\n",
       response
     );
     responseSent = true;
@@ -241,7 +241,7 @@ exports.processWorkerRegistrationRequest = async (req, res) => {
       response
     );
     responseSent = true;
-    return res.status(200).json(response);
+    return res.status(201).json(response);
   } else if (responseSent === false) {
     console.info(
       "[POST][RES]: @api/registration/worker\nAPI-Call-Result: 500.\nResult-Origin: Persisting request.\nResponse:\n",
@@ -375,7 +375,7 @@ exports.processCompanyRegistrationRequest = async (req, res) => {
       response
     );
     responseSent = true;
-    return res.status(200).json(response);
+    return res.status(201).json(response);
   } else if (responseSent === false) {
     console.info(
       "[POST][RES]: @api/registration/company\nAPI-Call-Result: 500.\nResult-Origin: Persisting request.\nResponse:\n",

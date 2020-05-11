@@ -6,6 +6,7 @@ const SessionStore = require("connect-mongo")(session);
 
 //[MODULES]
 const registration = require("./api/registration");
+const authetication = require("./api/authentication");
 
 //[CONFIG]
 const PORT = process.env.PORT || 3000;
@@ -61,6 +62,10 @@ app.use(
   })
 );
 
+//[EXPORTS]
+exports.app = app;
+exports.db = db;
+
 //===============
 //    [ API ]
 //===============
@@ -75,3 +80,10 @@ app.post(
   "/api/registration/company",
   registration.processCompanyRegistrationRequest
 );
+
+//[USER-AUTHETICATION]
+app.post("/api/login", authetication.loginUser);
+
+app.get("/api/login", authetication.userLoggedIn);
+
+app.post("/api/logout", authetication.logoutUser);
