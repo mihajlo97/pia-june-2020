@@ -1,0 +1,55 @@
+<nav
+  class="navbar navbar-expand-md sticky-top navbar-dark bg-dark cs-primary-dark"
+>
+  <a class="navbar-brand" href="#">PIA Manager</a>
+  <button
+    class="navbar-toggler"
+    type="button"
+    data-toggle="collapse"
+    data-target="#navbarSupportedContent"
+    aria-controls="navbarSupportedContent"
+    aria-expanded="false"
+    aria-label="Toggle navigation"
+  >
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item" *ngIf="showGuestMenu">
+        <a class="nav-link" routerLink="login" routerLinkActive="active"
+          >Login</a
+        >
+      </li>
+      <li class="nav-item" *ngIf="showGuestMenu">
+        <a
+          class="nav-link"
+          routerLink="register/choose-type"
+          routerLinkActive="active"
+          >Register</a
+        >
+      </li>
+    </ul>
+    <ul class="navbar-nav float-right" style="margin-right: 5vw;">
+      <li class="nav-item dropdown" *ngIf="!showGuestMenu">
+        <a
+          class="nav-link dropdown-toggle"
+          href="#"
+          id="navbarDropdown"
+          role="button"
+          data-toggle="dropdown"
+          aria-haspopup="true"
+          aria-expanded="false"
+        >
+          {{ navbarOptions.loggedInUser }}
+        </a>
+
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <a class="dropdown-item">Edit info</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" (click)="logoutUser()">Logout</a>
+        </div>
+      </li>
+    </ul>
+  </div>
+</nav>

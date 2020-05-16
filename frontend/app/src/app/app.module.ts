@@ -29,6 +29,7 @@ import { WorkerComponent } from './components/users/worker/worker.component';
 import { CompanyComponent } from './components/users/company/company.component';
 import { AccessForbiddenComponent } from './components/access-forbidden/access-forbidden.component';
 import { AuthenticationService } from './services/authentication.service';
+import { NavbarComponent } from './components/navbar/navbar.component';
 
 @NgModule({
   declarations: [
@@ -44,6 +45,7 @@ import { AuthenticationService } from './services/authentication.service';
     WorkerComponent,
     CompanyComponent,
     AccessForbiddenComponent,
+    NavbarComponent,
   ],
   imports: [
     BrowserModule,

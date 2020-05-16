@@ -60,7 +60,12 @@ const routes: Routes = [
       {
         path: '',
         canActivateChild: [AdminAuthGuard],
-        children: [],
+        children: [
+          {
+            path: 'success',
+            component: RegisterSuccessComponent,
+          },
+        ],
       },
     ],
   },

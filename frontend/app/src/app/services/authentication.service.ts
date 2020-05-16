@@ -4,32 +4,36 @@ import {
   HttpHeaders,
   HttpErrorResponse,
 } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
 import {
   UserLoginRequest,
   UserLoginResponse,
   UserLoggedInResponse,
   UserLogoutResponse,
 } from '../models/authetication';
-
-const ROLE_NONE = 'none';
+import { NavbarOptions } from '../models/navbar';
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthenticationService {
-  private httpOptions = {
+  private _httpOptions = {
     headers: new HttpHeaders({
       'Content-Type': 'application/json',
       Accept: 'application/json',
     }),
     withCredentials: true,
   };
-  private authAPI = 'http://localhost:3000/api/authentication';
+  private _authAPI = 'http://localhost:3000/api/authentication';
 
-  private loggedInUser = '';
-  private allowedRole = ROLE_NONE;
+  private _navbarOption: NavbarOptions = {
+    loggedInUser: '',
+    userRole: '',
+  };
+  private _navbarOptionsSubject = new BehaviorSubject<NavbarOptions>(
+    this._navbarOption
+  );
+  readonly navbarOption$ = this._navbarOptionsSubject.asObservable();
 
   constructor(private http: HttpClient) {}
 
@@ -37,13 +41,14 @@ export class AuthenticationService {
     let response: UserLoginResponse;
 
     await this.http
-      .post<UserLoginResponse>(`${this.authAPI}/login`, req, this.httpOptions)
+      .post<UserLoginResponse>(`${this._authAPI}/login`, req, this._httpOptions)
       .toPromise()
       .then((res: UserLoginResponse) => {
         response = res;
         if (res.username !== '' && res.role !== '') {
-          this.loggedInUser = res.username;
-          this.allowedRole = res.role;
+          this._navbarOption.loggedInUser = res.username;
+          this._navbarOption.userRole = res.role;
+          this._navbarOptionsSubject.next(this._navbarOption);
         }
       })
       .catch((res: HttpErrorResponse) => {
@@ -55,8 +60,9 @@ export class AuthenticationService {
           );
         } else {
           if (response.username !== '' && response.role !== '') {
-            this.loggedInUser = response.username;
-            this.allowedRole = response.role;
+            this._navbarOption.loggedInUser = response.username;
+            this._navbarOption.userRole = response.role;
+            this._navbarOptionsSubject.next(this._navbarOption);
           }
         }
       });
@@ -67,7 +73,7 @@ export class AuthenticationService {
   async checkUserLoggedIn(): Promise<boolean> {
     let isLoggedIn: boolean;
     await this.http
-      .get<UserLoggedInResponse>(`${this.authAPI}/login`, this.httpOptions)
+      .get<UserLoggedInResponse>(`${this._authAPI}/login`, this._httpOptions)
       .toPromise()
       .then((res: UserLoggedInResponse) => {
         isLoggedIn = res.isLoggedIn;
@@ -89,12 +95,17 @@ export class AuthenticationService {
     let logoutSuccess: boolean;
 
     await this.http
-      .post<UserLogoutResponse>(`${this.authAPI}/logout`, {}, this.httpOptions)
+      .post<UserLogoutResponse>(
+        `${this._authAPI}/logout`,
+        {},
+        this._httpOptions
+      )
       .toPromise()
       .then((res: UserLogoutResponse) => {
         if (res.logoutSuccess) {
-          this.loggedInUser = '';
-          this.allowedRole = ROLE_NONE;
+          this._navbarOption.loggedInUser = '';
+          this._navbarOption.userRole = '';
+          this._navbarOptionsSubject.next(this._navbarOption);
         }
         logoutSuccess = res.logoutSuccess;
       })
@@ -112,10 +123,10 @@ export class AuthenticationService {
   }
 
   getLoggedInUser(): string {
-    return this.loggedInUser;
+    return this._navbarOption.loggedInUser;
   }
 
   getUserRole(): string {
-    return this.allowedRole;
+    return this._navbarOption.userRole;
   }
 }
