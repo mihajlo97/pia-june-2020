@@ -22,3 +22,9 @@ export interface Admin {
   username: string;
   password: string;
 }
+
+export enum Roles {
+  ADMIN = 'admin',
+  WORKER = 'worker',
+  COMPANY = 'company',
+}

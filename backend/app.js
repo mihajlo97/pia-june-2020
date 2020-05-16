@@ -4,6 +4,9 @@ const cors = require("cors");
 const session = require("express-session");
 const SessionStore = require("connect-mongo")(session);
 
+//<[TESTING]>
+//const dbTest = require("./test/populate-db");
+
 //[MODULES]
 const registration = require("./api/registration");
 const authetication = require("./api/authentication");
@@ -66,9 +69,7 @@ app.use(
 exports.app = app;
 exports.db = db;
 
-//===============
-//    [ API ]
-//===============
+//<====[API]====>
 
 //[REGISTRATION]
 app.post(
@@ -82,8 +83,11 @@ app.post(
 );
 
 //[USER-AUTHETICATION]
-app.post("/api/login", authetication.loginUser);
+app.post("/api/authentication/login", authetication.loginUser);
 
-app.get("/api/login", authetication.userLoggedIn);
+app.get("/api/authentication/login", authetication.userLoggedIn);
 
-app.post("/api/logout", authetication.logoutUser);
+app.post("/api/authentication/logout", authetication.logoutUser);
+
+//<====[TESTING]====>
+//app.get("/test/add-admin", dbTest.addMasterAdmin);

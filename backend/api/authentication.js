@@ -6,13 +6,13 @@ const { UserSchema } = require("../models/users");
 const Users = mongoose.model("User", UserSchema);
 
 //[MIDDLEWARE]
-exports.authUser = (req, res, next) => {
-  let response = { hasPermission: false };
+exports.hasSession = (req, res, next) => {
+  let response = { hasSession: false };
   if (req.session && req.session.user) {
     next();
   } else {
     console.info(
-      "[MIDWARE][RES]: @authUser\nMidware-Result: 403.\nResult-Origin: Request params.\nResponse:\n",
+      "[MIDWARE][RES]: @hasSession\nMidware-Result: 403.\nResult-Origin: Request params.\nResponse:\n",
       response
     );
     return res.status(403).json(response);
@@ -22,10 +22,10 @@ exports.authUser = (req, res, next) => {
 //[API-RESPONSES]
 //>POST @api/login
 exports.loginUser = async (req, res) => {
-  let response = { userOK: false, passOK: false, username: "" };
+  let response = { userOK: false, passOK: false, username: "", role: "" };
 
   //validate request
-  if (!req.body.username || !req.body.password || req.session.user) {
+  if (!req.body.username || !req.body.password || req.session.username) {
     console.info(
       "[POST][RES]: @api/login\nAPI-Call-Result: 400.\nResult-Origin: Request params.\nResponse:\n",
       response
@@ -39,7 +39,7 @@ exports.loginUser = async (req, res) => {
     user = await Users.findOne({
       username: req.body.username,
     })
-      .select("username password salt")
+      .select("username password salt role")
       .exec();
   } catch (err) {
     console.error(
@@ -53,7 +53,7 @@ exports.loginUser = async (req, res) => {
       "[POST][RES]: @api/login\nAPI-Call-Result: 403.\nResult-Origin: Username lookup.\nResponse:\n",
       response
     );
-    return res.status(403).json(response);
+    return res.status(404).json(response);
   } else {
     response.userOK = true;
   }
@@ -81,8 +81,9 @@ exports.loginUser = async (req, res) => {
 
   //start session
   if (response.userOK && response.passOK) {
-    req.session.user = user.username;
+    req.session.username = user.username;
     response.username = user.username;
+    response.role = user.role;
     console.info(
       "[POST][RES]: @api/login\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
       response
@@ -100,7 +101,7 @@ exports.loginUser = async (req, res) => {
 //>GET @api/login
 exports.userLoggedIn = (req, res) => {
   let response = { isLoggedIn: false };
-  response.isLoggedIn = req.session.user ? true : false;
+  response.isLoggedIn = req.session.username ? true : false;
   console.info(
     "[GET][RES]: @api/login\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
     response
@@ -119,6 +120,7 @@ exports.logoutUser = (req, res) => {
       );
       return res.status(500).json(response);
     } else {
+      response.logoutSuccess = true;
       console.info(
         "[POST][RES]: @api/logout\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
         response

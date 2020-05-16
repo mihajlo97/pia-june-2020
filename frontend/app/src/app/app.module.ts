@@ -24,6 +24,11 @@ import { CompanyRegisterComponent } from './components/register/company-register
 import { RegistrationService } from './services/registration.service';
 import { ChooseTypeComponent } from './components/register/choose-type/choose-type.component';
 import { RegisterSuccessComponent } from './components/register/register-success/register-success.component';
+import { AdminComponent } from './components/users/admin/admin.component';
+import { WorkerComponent } from './components/users/worker/worker.component';
+import { CompanyComponent } from './components/users/company/company.component';
+import { AccessForbiddenComponent } from './components/access-forbidden/access-forbidden.component';
+import { AuthenticationService } from './services/authentication.service';
 
 @NgModule({
   declarations: [
@@ -35,6 +40,10 @@ import { RegisterSuccessComponent } from './components/register/register-success
     CompanyRegisterComponent,
     ChooseTypeComponent,
     RegisterSuccessComponent,
+    AdminComponent,
+    WorkerComponent,
+    CompanyComponent,
+    AccessForbiddenComponent,
   ],
   imports: [
     BrowserModule,
@@ -53,6 +62,7 @@ import { RegisterSuccessComponent } from './components/register/register-success
       } as RecaptchaSettings,
     },
     RegistrationService,
+    AuthenticationService,
   ],
   bootstrap: [AppComponent],
 })

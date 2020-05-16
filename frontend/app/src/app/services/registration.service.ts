@@ -39,7 +39,7 @@ export class RegistrationService {
     } else {
       console.error(
         `[API]: Response @${err.url}\nCode: ${err.status}\nError-Origin: Server.\nError log:\n`,
-        err.error.message
+        err.error
       );
       return throwError(
         '[RegistrationService] Failed-Registration-Exception: Server encountered an error while processing request.'
