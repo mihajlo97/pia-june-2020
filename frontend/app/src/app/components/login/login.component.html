@@ -30,9 +30,9 @@
           ></span
         >
         <br />
-        <small class="form-text text-danger pt-1" *ngIf="showErrorMsg"
-          >Invalid credentials: Username not found or bad password.</small
-        >
+        <small class="form-text text-danger pt-1" *ngIf="showErrorMsg">{{
+          errorMsg
+        }}</small>
       </div>
       <div style="text-align: center;">
         <button

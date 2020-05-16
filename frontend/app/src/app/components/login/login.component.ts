@@ -1,11 +1,11 @@
 import { Component, OnInit } from '@angular/core';
-import {
-  FormBuilder,
-  FormGroup,
-  FormControl,
-  Validators,
-} from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { AuthenticationService } from '../../services/authentication.service';
+import {
+  UserLoginRequest,
+  UserLoginResponse,
+} from 'src/app/models/authetication';
 
 @Component({
   selector: 'app-login',
@@ -14,9 +14,20 @@ import { Router } from '@angular/router';
 })
 export class LoginComponent implements OnInit {
   loginForm: FormGroup;
-  showErrorMsg = false;
+  loginRequest: UserLoginRequest = {
+    username: '',
+    password: '',
+  };
 
-  constructor(private fb: FormBuilder, private router: Router) {
+  showErrorMsg = false;
+  errorMessages = ['Username not found.', 'Wrong password.'];
+  errorMsg = '';
+
+  constructor(
+    private fb: FormBuilder,
+    private router: Router,
+    private auth: AuthenticationService
+  ) {
     this.loginForm = this.fb.group({
       user: ['', Validators.required],
       pass: ['', Validators.required],
@@ -26,14 +37,27 @@ export class LoginComponent implements OnInit {
   ngOnInit(): void {}
 
   onSubmit(): void {
-    console.warn(this.loginForm.value);
-    if (this.sendLoginRequest() === false) {
-      this.showErrorMsg = true;
-      this.loginForm.reset();
-    }
-  }
+    this.showErrorMsg = false;
+    this.errorMsg = '';
+    this.loginRequest = {
+      username: this.loginForm.value.user,
+      password: this.loginForm.value.pass,
+    };
 
-  sendLoginRequest() {
-    return false;
+    this.auth.attemptUserLogin(this.loginRequest).then((loginResponse) => {
+      if (!loginResponse.userOK) {
+        this.errorMsg = this.errorMessages[0];
+        this.showErrorMsg = true;
+        return;
+      }
+      if (!loginResponse.passOK) {
+        this.errorMsg = this.errorMessages[1];
+        this.showErrorMsg = true;
+        return;
+      }
+      if (loginResponse.role) {
+        this.router.navigate([loginResponse.role]);
+      }
+    });
   }
 }
