@@ -1,7 +1,7 @@
 <nav
   class="navbar navbar-expand-md sticky-top navbar-dark bg-dark cs-primary-dark"
 >
-  <a class="navbar-brand" href="#">PIA Manager</a>
+  <span class="navbar-brand">PIA Manager</span>
   <button
     class="navbar-toggler"
     type="button"
@@ -29,12 +29,9 @@
           >Register</a
         >
       </li>
-    </ul>
-    <ul class="navbar-nav float-right" style="margin-right: 5vw;">
       <li class="nav-item dropdown" *ngIf="!showGuestMenu">
         <a
           class="nav-link dropdown-toggle"
-          href="#"
           id="navbarDropdown"
           role="button"
           data-toggle="dropdown"
@@ -45,7 +42,9 @@
         </a>
 
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-          <a class="dropdown-item">Edit info</a>
+          <a class="dropdown-item" (click)="changePassword()"
+            >Change password</a
+          >
           <div class="dropdown-divider"></div>
           <a class="dropdown-item" (click)="logoutUser()">Logout</a>
         </div>

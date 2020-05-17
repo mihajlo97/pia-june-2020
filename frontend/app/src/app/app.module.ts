@@ -30,6 +30,8 @@ import { CompanyComponent } from './components/users/company/company.component';
 import { AccessForbiddenComponent } from './components/access-forbidden/access-forbidden.component';
 import { AuthenticationService } from './services/authentication.service';
 import { NavbarComponent } from './components/navbar/navbar.component';
+import { ChangePasswordComponent } from './components/change-password/change-password.component';
+import { ChangePasswordSuccessComponent } from './components/change-password/change-password-success/change-password-success.component';
 
 @NgModule({
   declarations: [
@@ -46,6 +48,8 @@ import { NavbarComponent } from './components/navbar/navbar.component';
     CompanyComponent,
     AccessForbiddenComponent,
     NavbarComponent,
+    ChangePasswordComponent,
+    ChangePasswordSuccessComponent,
   ],
   imports: [
     BrowserModule,

@@ -72,22 +72,34 @@ exports.db = db;
 //<====[API]====>
 
 //[REGISTRATION]
+const registrationPath = "/api/registration";
 app.post(
-  "/api/registration/worker",
+  `${registrationPath}/worker`,
   registration.processWorkerRegistrationRequest
 );
 
 app.post(
-  "/api/registration/company",
+  `${registrationPath}/company`,
   registration.processCompanyRegistrationRequest
 );
 
 //[USER-AUTHETICATION]
-app.post("/api/authentication/login", authetication.loginUser);
+const authenticationPath = "/api/authentication";
+app.post(`${authenticationPath}/login`, authetication.loginUser);
 
-app.get("/api/authentication/login", authetication.userLoggedIn);
+app.get(`${authenticationPath}/login`, authetication.userLoggedIn);
 
-app.post("/api/authentication/logout", authetication.logoutUser);
+app.post(
+  `${authenticationPath}/logout`,
+  authetication.hasSession,
+  authetication.logoutUser
+);
+
+app.post(
+  `${authenticationPath}/change-password`,
+  authetication.hasSession,
+  authetication.changePassword
+);
 
 //<====[TESTING]====>
 //app.get("/test/add-admin", dbTest.addMasterAdmin);

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { Observable } from 'rxjs';
 import { NavbarOptions } from 'src/app/models/navbar';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-navbar',
@@ -34,5 +34,9 @@ export class NavbarComponent implements OnInit {
         alert('Server failed to log out the user, please try again.');
       }
     });
+  }
+
+  changePassword(): void {
+    this.router.navigate([`${this.auth.getUserRole()}/change-password`]);
   }
 }

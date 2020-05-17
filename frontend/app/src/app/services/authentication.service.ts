@@ -9,6 +9,8 @@ import {
   UserLoginResponse,
   UserLoggedInResponse,
   UserLogoutResponse,
+  ChangePasswordRequest,
+  ChangePasswordResponse,
 } from '../models/authetication';
 import { NavbarOptions } from '../models/navbar';
 import { BehaviorSubject } from 'rxjs';
@@ -120,6 +122,18 @@ export class AuthenticationService {
       });
 
     return Promise.resolve(logoutSuccess);
+  }
+
+  async changePassword(
+    req: ChangePasswordRequest
+  ): Promise<ChangePasswordResponse> {
+    return this.http
+      .post<ChangePasswordResponse>(
+        `${this._authAPI}/change-password`,
+        req,
+        this._httpOptions
+      )
+      .toPromise();
   }
 
   getLoggedInUser(): string {

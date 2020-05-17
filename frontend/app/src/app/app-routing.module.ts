@@ -14,6 +14,8 @@ import { AccessForbiddenComponent } from './components/access-forbidden/access-f
 import { WorkerAuthGuard } from './guards/worker-auth.guard';
 import { CompanyAuthGuard } from './guards/company-auth.guard';
 import { AdminAuthGuard } from './guards/admin-auth.guard';
+import { ChangePasswordComponent } from './components/change-password/change-password.component';
+import { ChangePasswordSuccessComponent } from './components/change-password/change-password-success/change-password-success.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -56,16 +58,15 @@ const routes: Routes = [
     path: 'admin',
     component: AdminComponent,
     canActivate: [AdminAuthGuard],
+    canActivateChild: [AdminAuthGuard],
     children: [
       {
-        path: '',
-        canActivateChild: [AdminAuthGuard],
-        children: [
-          {
-            path: 'success',
-            component: RegisterSuccessComponent,
-          },
-        ],
+        path: 'change-password',
+        component: ChangePasswordComponent,
+      },
+      {
+        path: 'change-password-success',
+        component: ChangePasswordSuccessComponent,
       },
     ],
   },
