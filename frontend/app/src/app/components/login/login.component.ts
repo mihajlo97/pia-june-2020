@@ -53,7 +53,7 @@ export class LoginComponent implements OnInit {
         return;
       }
       if (loginResponse.role) {
-        this.router.navigate([loginResponse.role]);
+        this.router.navigate([`${loginResponse.role}/dashboard`]);
       }
     });
   }

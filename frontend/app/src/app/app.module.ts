@@ -32,6 +32,10 @@ import { AuthenticationService } from './services/authentication.service';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { ChangePasswordComponent } from './components/change-password/change-password.component';
 import { ChangePasswordSuccessComponent } from './components/change-password/change-password-success/change-password-success.component';
+import { AdminHomeComponent } from './components/users/admin/admin-home/admin-home.component';
+import { AdminManageComponent } from './components/users/admin/admin-manage/admin-manage.component';
+import { AdminCreateComponent } from './components/users/admin/admin-create/admin-create.component';
+import { AdminDashboardComponent } from './components/users/admin/admin-dashboard/admin-dashboard.component';
 
 @NgModule({
   declarations: [
@@ -50,6 +54,10 @@ import { ChangePasswordSuccessComponent } from './components/change-password/cha
     NavbarComponent,
     ChangePasswordComponent,
     ChangePasswordSuccessComponent,
+    AdminHomeComponent,
+    AdminManageComponent,
+    AdminCreateComponent,
+    AdminDashboardComponent,
   ],
   imports: [
     BrowserModule,

@@ -39,4 +39,10 @@ export class NavbarComponent implements OnInit {
   changePassword(): void {
     this.router.navigate([`${this.auth.getUserRole()}/change-password`]);
   }
+
+  navigateToDashboard(): void {
+    this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+      this.router.navigate([`${this.auth.getUserRole()}/dashboard/home`]);
+    });
+  }
 }
