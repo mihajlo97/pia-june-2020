@@ -117,5 +117,19 @@ app.post(
   admin.acceptOrRejectPendingRequest
 );
 
+app.get(`${adminPath}/users`, admin.checkAdminPrivilege, admin.getAllUsers);
+
+app.post(
+  `${adminPath}/users/search`,
+  admin.checkAdminPrivilege,
+  admin.searchUsers
+);
+
+app.post(
+  `${adminPath}/users/role`,
+  admin.checkAdminPrivilege,
+  admin.getUsersByRole
+);
+
 //<====[TESTING]====>
 app.get("/test/add-admin", dbTest.addMasterAdmin);

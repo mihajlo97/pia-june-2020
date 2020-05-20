@@ -4,6 +4,9 @@ import {
   PendingRegistrationItem,
   RegistrationItemActionResponse,
   RegistrationItemAction,
+  UserItem,
+  UserSearchPartialRequest,
+  SelectUsersByRoleRequest,
 } from 'src/app/models/admin';
 import { Observable } from 'rxjs';
 
@@ -29,10 +32,32 @@ export class AdminService {
     );
   }
 
+  getAllUsers(): Observable<UserItem[]> {
+    return this.http.get<UserItem[]>(
+      `${this._adminAPI}/users`,
+      this._httpOptions
+    );
+  }
+
+  searchUsers(req: UserSearchPartialRequest): Observable<UserItem[]> {
+    return this.http.post<UserItem[]>(
+      `${this._adminAPI}/users/search`,
+      req,
+      this._httpOptions
+    );
+  }
+
+  getUsersByRole(req: SelectUsersByRoleRequest): Observable<UserItem[]> {
+    return this.http.post<UserItem[]>(
+      `${this._adminAPI}/users/role`,
+      req,
+      this._httpOptions
+    );
+  }
+
   attemptPendingItemAction(
     req: RegistrationItemAction
   ): Observable<RegistrationItemActionResponse> {
-    console.log('[DEBUG]: Reject-Action: ', req);
     return this.http.post<RegistrationItemActionResponse>(
       `${this._adminAPI}/pending`,
       req,

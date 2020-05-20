@@ -7,7 +7,6 @@ import { Observable, Subscription, BehaviorSubject } from 'rxjs';
 import { AdminService } from 'src/app/services/users/admin.service';
 import { Roles } from 'src/app/models/users';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Router, ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-admin-home',
@@ -18,11 +17,7 @@ export class AdminHomeComponent implements OnInit {
   itemStream$: Observable<PendingRegistrationItem[]>;
   itemsSubscription: Subscription;
 
-  constructor(
-    private admin: AdminService,
-    private router: Router,
-    private route: ActivatedRoute
-  ) {}
+  constructor(private admin: AdminService) {}
 
   ngOnInit(): void {
     this.itemStream$ = this.admin.getPendingRegistrationRequests();
@@ -43,7 +38,7 @@ export class AdminHomeComponent implements OnInit {
       .toPromise()
       .then((res: RegistrationItemActionResponse) => {
         if (res.actionSuccess) {
-          this.router.navigate(['../'], { relativeTo: this.route });
+          this.itemStream$ = this.admin.getPendingRegistrationRequests();
         }
       })
       .catch((err: HttpErrorResponse) => {

@@ -15,6 +15,7 @@ const CompanyItems = mongoose.model(
 const AdminInfo = mongoose.model("AdminInfo", users.AdminInfoSchema);
 const WorkerInfo = mongoose.model("WorkerInfo", users.WorkerInfoSchema);
 const CompanyInfo = mongoose.model("CompanyInfo", users.CompanyInfoSchema);
+const userRoles = ["none", "worker", "company", "admin"];
 
 //[MIDDLEWARE]
 exports.checkAdminPrivilege = async (req, res, next) => {
@@ -190,8 +191,6 @@ exports.acceptOrRejectPendingRequest = async (req, res) => {
       }
     }
 
-    console.log("[DEBUG]: Account:", account);
-
     //insert account credentials into Users collection
     const user = await Users.create({
       username: account.username,
@@ -217,4 +216,153 @@ exports.acceptOrRejectPendingRequest = async (req, res) => {
     );
     return res.status(500).json(response);
   }
+};
+
+//GET @api/admin/users
+exports.getAllUsers = async (req, res) => {
+  //setup response stream as array of JSON objects
+  res.set("Content-Type", "application/json");
+  res.write("[");
+  let userItem = {
+    username: "",
+    role: "",
+  };
+
+  //write to stream user item
+  const cursor = Users.find().cursor();
+  let doc = await cursor.next();
+  let docNext;
+  while (doc != null) {
+    docNext = await cursor.next();
+    if (doc) {
+      userItem.username = doc.username;
+      userItem.role = doc.role;
+
+      res.write(JSON.stringify(userItem));
+    }
+    if (docNext) {
+      res.write(",");
+    }
+    doc = docNext;
+  }
+
+  console.info(
+    "[GET][RES]: @api/admin/users\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse: Stream-Write-OK."
+  );
+
+  res.end("]");
+};
+
+//POST @api/admin/users/search
+exports.searchUsers = async (req, res) => {
+  //setup response stream as array of JSON objects
+  res.set("Content-Type", "application/json");
+  res.write("[");
+  let userItem = {
+    username: "",
+    role: "",
+  };
+  const searchByRole = req.body.role;
+
+  //handle invalid request format
+  const MINIMUM_CHARS = 2;
+  if (
+    !req.body.partial ||
+    !req.body.role ||
+    userRoles.findIndex((value, index, array) => {
+      return array[index] === req.body.role;
+    }) < 0 ||
+    req.body.partial.length < MINIMUM_CHARS
+  ) {
+    console.info(
+      "[POST][RES]: @api/admin/users/search\nAPI-Call-Result: 400.\nResult-Origin: Request params.\nResponse:\n",
+      []
+    );
+    return res.status(400).end("]");
+  }
+
+  //perform user search
+  let cursor;
+  if (searchByRole === "none") {
+    cursor = Users.find({
+      username: { $regex: req.body.partial, $options: "i" },
+    }).cursor();
+  } else {
+    cursor = Users.find({
+      username: { $regex: req.body.partial, $options: "i" },
+      role: searchByRole,
+    }).cursor();
+  }
+  let doc = await cursor.next();
+  let docNext;
+  while (doc != null) {
+    docNext = await cursor.next();
+    if (doc) {
+      userItem.username = doc.username;
+      userItem.role = doc.role;
+
+      res.write(JSON.stringify(userItem));
+    }
+    if (docNext) {
+      res.write(",");
+    }
+    doc = docNext;
+  }
+
+  console.info(
+    "[POST][RES]: @api/admin/users/search\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse: Stream-Write-OK."
+  );
+
+  res.end("]");
+};
+
+//POST @api/admin/users/role
+exports.getUsersByRole = async (req, res) => {
+  //setup response stream as array of JSON objects
+  res.set("Content-Type", "application/json");
+  res.write("[");
+  let userItem = {
+    username: "",
+    role: "",
+  };
+
+  //handle invalid request format
+  if (
+    !req.body.role ||
+    userRoles.findIndex((value, index, array) => {
+      return array[index] === req.body.role;
+    }) < 0
+  ) {
+    console.info(
+      "[POST][RES]: @api/admin/users/search\nAPI-Call-Result: 400.\nResult-Origin: Request params.\nResponse:\n",
+      []
+    );
+    return res.status(400).end("]");
+  }
+
+  //get users that match the querried role
+  const cursor = Users.find({
+    role: req.body.role,
+  }).cursor();
+  let doc = await cursor.next();
+  let docNext;
+  while (doc != null) {
+    docNext = await cursor.next();
+    if (doc) {
+      userItem.username = doc.username;
+      userItem.role = doc.role;
+
+      res.write(JSON.stringify(userItem));
+    }
+    if (docNext) {
+      res.write(",");
+    }
+    doc = docNext;
+  }
+
+  console.info(
+    "[POST][RES]: @api/admin/users/role\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse: Stream-Write-OK."
+  );
+
+  res.end("]");
 };

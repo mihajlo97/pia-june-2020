@@ -27,4 +27,5 @@ export enum Roles {
   ADMIN = 'admin',
   WORKER = 'worker',
   COMPANY = 'company',
+  NONE = 'none',
 }
