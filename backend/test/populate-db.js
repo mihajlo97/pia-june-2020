@@ -7,10 +7,10 @@ const AdminInfo = mongoose.model("AdminInfo", AdminInfoSchema);
 
 exports.addMasterAdmin = async (req, res) => {
   await AdminInfo.create({
-    name: "master",
+    email: "master@admin.com",
   });
   const _id = await AdminInfo.findOne({
-    name: "master",
+    email: "master@admin.com",
   })
     .select("_id")
     .exec();
@@ -25,5 +25,6 @@ exports.addMasterAdmin = async (req, res) => {
     info: _id,
     infoSelector: "AdminInfo",
   });
+  console.log("[TEST]: Added master admin successfully.");
   res.json(doc);
 };

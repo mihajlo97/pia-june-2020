@@ -14,6 +14,7 @@ import {
 import { RegistrationService } from 'src/app/services/registration.service';
 import { RecaptchaComponent } from 'ng-recaptcha';
 import { Router, ActivatedRoute } from '@angular/router';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-worker-register',
@@ -30,6 +31,7 @@ export class WorkerRegisterComponent implements OnInit {
     user: null,
     token: this.captchaToken,
   };
+  responseSubscriber$: Subscription;
 
   //on server response
   failedAuthRecaptcha = false;
@@ -415,7 +417,7 @@ export class WorkerRegisterComponent implements OnInit {
     this.regRequest.token = this.captchaToken;
 
     //API call
-    this.registration
+    this.responseSubscriber$ = this.registration
       .sendWorkerRegistrationRequest(this.regRequest)
       .subscribe((res: SendWorkerRegistrationResponse) => {
         if (res.success) {
@@ -429,5 +431,9 @@ export class WorkerRegisterComponent implements OnInit {
         this.isUniqueUsername = res.usernameOK;
         this.formSubmitSuccess = res.success;
       });
+  }
+
+  ngOnDestroy(): void {
+    this.responseSubscriber$.unsubscribe();
   }
 }

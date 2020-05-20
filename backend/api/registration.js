@@ -70,8 +70,8 @@ const workerUsernameLookup = (identifier) => {
 const companyAliasLookup = (identifier) => {
   return new Promise((resolve, reject) => {
     CompanyRegistrationRequest.findOne(
-      { alias: identifier },
-      "alias",
+      { username: identifier },
+      "username",
       (err, doc) => {
         if (err) {
           reject(err);
@@ -114,7 +114,7 @@ const persistRegistrationRequest = async (document) => {
   }
 };
 
-//[API-RESPONSES]
+//$[API]
 
 //>POST @api/registration/worker
 exports.processWorkerRegistrationRequest = async (req, res) => {
@@ -351,8 +351,8 @@ exports.processCompanyRegistrationRequest = async (req, res) => {
   //submit new registration request to db
   const newRegistrationRequest = new CompanyRegistrationRequest({
     name: req.body.user.name,
-    alias: req.body.user.alias,
-    pass: hashedPassword,
+    username: req.body.user.alias,
+    password: hashedPassword,
     salt: saltValue,
     foundingDate: new Date(req.body.user.foundingDate),
     hq: req.body.user.hq,

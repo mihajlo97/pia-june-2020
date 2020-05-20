@@ -7,7 +7,9 @@ const Users = mongoose.model("User", UserSchema);
 
 //[MIDDLEWARE]
 exports.hasSession = (req, res, next) => {
-  let response = { hasSession: false };
+  let response = {
+    error: "Access-Rejected-Exception: No active session found.",
+  };
   if (req.session && req.session.username) {
     next();
   } else {
@@ -19,7 +21,7 @@ exports.hasSession = (req, res, next) => {
   }
 };
 
-//[API-RESPONSES]
+//$[API]
 
 //>POST @api/authentication/login
 exports.loginUser = async (req, res) => {

@@ -1,3 +1,4 @@
+//[THIRD-PARTY-LIBRARIES]
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -5,11 +6,12 @@ const session = require("express-session");
 const SessionStore = require("connect-mongo")(session);
 
 //<[TESTING]>
-//const dbTest = require("./test/populate-db");
+const dbTest = require("./test/populate-db");
 
-//[MODULES]
+//[APP-MODULES]
 const registration = require("./api/registration");
 const authetication = require("./api/authentication");
+const admin = require("./api/admin");
 
 //[CONFIG]
 const PORT = process.env.PORT || 3000;
@@ -101,5 +103,19 @@ app.post(
   authetication.changePassword
 );
 
+//[USER-ADMIN-MODULE]
+const adminPath = "/api/admin";
+app.get(
+  `${adminPath}/pending`,
+  admin.checkAdminPrivilege,
+  admin.getPendingRequests
+);
+
+app.post(
+  `${adminPath}/pending`,
+  admin.checkAdminPrivilege,
+  admin.acceptOrRejectPendingRequest
+);
+
 //<====[TESTING]====>
-//app.get("/test/add-admin", dbTest.addMasterAdmin);
+app.get("/test/add-admin", dbTest.addMasterAdmin);
