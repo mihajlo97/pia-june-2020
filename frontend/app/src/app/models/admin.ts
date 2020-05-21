@@ -35,3 +35,7 @@ export interface UserSearchPartialRequest {
 export interface SelectUsersByRoleRequest {
   role: Roles;
 }
+
+export interface DeleteUserResponse {
+  deleteSuccess: string;
+}

@@ -47,6 +47,14 @@ exports.checkAdminPrivilege = async (req, res, next) => {
   }
 };
 
+//[HELPER-FUNCTIONS]
+const isInvalidRole = (role) => {
+  const itemAt = userRoles.findIndex((value, index, array) => {
+    return array[index] === role;
+  });
+  return itemAt < 0;
+};
+
 //[API]
 
 //GET @api/admin/pending
@@ -60,54 +68,62 @@ exports.getPendingRequests = async (req, res) => {
     role: "",
   };
 
-  //write to stream worker registration requests
-  const workerRole = "worker";
-  for await (const doc of WorkerItems.find()) {
-    if (doc) {
-      pendingItem.username = doc.username;
-      pendingItem.email = doc.email;
-      pendingItem.role = workerRole;
+  try {
+    //write to stream worker registration requests
+    const workerRole = "worker";
+    for await (const doc of WorkerItems.find()) {
+      if (doc) {
+        pendingItem.username = doc.username;
+        pendingItem.email = doc.email;
+        pendingItem.role = workerRole;
 
-      res.write(`${JSON.stringify(pendingItem)},`);
+        res.write(`${JSON.stringify(pendingItem)},`);
+      }
     }
+
+    //write to stream company registration requests
+    const companyRole = "company";
+    const cursor = CompanyItems.find().cursor();
+    let doc = await cursor.next();
+    let docNext;
+    while (doc != null) {
+      docNext = await cursor.next();
+      if (doc) {
+        pendingItem.username = doc.username;
+        pendingItem.email = doc.email;
+        pendingItem.role = companyRole;
+
+        res.write(JSON.stringify(pendingItem));
+      }
+      if (docNext) {
+        res.write(",");
+      }
+      doc = docNext;
+    }
+
+    console.info(
+      "[GET][RES]: @api/admin/pending\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse: Stream-Write-OK."
+    );
+    res.end("]");
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/admin/pending\nDatabase-Query-Exception: Query call failed.\nQuery: Retrieving registration requests.\nError-Log:\n",
+      err
+    );
+    res.status(500).end("{}]");
   }
-
-  //write to stream company registration requests
-  const companyRole = "company";
-  const cursor = CompanyItems.find().cursor();
-  let doc = await cursor.next();
-  let docNext;
-  while (doc != null) {
-    docNext = await cursor.next();
-    if (doc) {
-      pendingItem.username = doc.username;
-      pendingItem.email = doc.email;
-      pendingItem.role = companyRole;
-
-      res.write(JSON.stringify(pendingItem));
-    }
-    if (docNext) {
-      res.write(",");
-    }
-    doc = docNext;
-  }
-
-  console.info(
-    "[GET][RES]: @api/admin/pending\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse: Stream-Write-OK."
-  );
-
-  res.end("]");
 };
 
 //POST @api/admin/pending
 exports.acceptOrRejectPendingRequest = async (req, res) => {
   let response = { actionSuccess: false };
 
+  //handle bad request
   if (
     !req.body.username ||
     !req.body.role ||
-    req.body.acceptItem === null ||
-    req.body.acceptItem === undefined
+    isInvalidRole(req.body.role) ||
+    acceptItem in req.body
   ) {
     console.info(
       "[POST][RES]: @api/admin/pending\nAPI-Call-Result: 400.\nResult-Origin: Request params.\nResponse:\n",
@@ -228,29 +244,37 @@ exports.getAllUsers = async (req, res) => {
     role: "",
   };
 
-  //write to stream user item
-  const cursor = Users.find().cursor();
-  let doc = await cursor.next();
-  let docNext;
-  while (doc != null) {
-    docNext = await cursor.next();
-    if (doc) {
-      userItem.username = doc.username;
-      userItem.role = doc.role;
+  try {
+    //write to stream user item
+    const cursor = Users.find().cursor();
+    let doc = await cursor.next();
+    let docNext;
+    while (doc != null) {
+      docNext = await cursor.next();
+      if (doc) {
+        userItem.username = doc.username;
+        userItem.role = doc.role;
 
-      res.write(JSON.stringify(userItem));
+        res.write(JSON.stringify(userItem));
+      }
+      if (docNext) {
+        res.write(",");
+      }
+      doc = docNext;
     }
-    if (docNext) {
-      res.write(",");
-    }
-    doc = docNext;
+
+    console.info(
+      "[GET][RES]: @api/admin/users\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse: Stream-Write-OK."
+    );
+
+    res.end("]");
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/admin/users\nDatabase-Query-Exception: Query call failed.\nQuery: Retrieving users.\nError-Log:\n",
+      err
+    );
+    res.status(500).end("{}]");
   }
-
-  console.info(
-    "[GET][RES]: @api/admin/users\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse: Stream-Write-OK."
-  );
-
-  res.end("]");
 };
 
 //POST @api/admin/users/search
@@ -269,9 +293,7 @@ exports.searchUsers = async (req, res) => {
   if (
     !req.body.partial ||
     !req.body.role ||
-    userRoles.findIndex((value, index, array) => {
-      return array[index] === req.body.role;
-    }) < 0 ||
+    isInvalidRole(req.body.role) ||
     req.body.partial.length < MINIMUM_CHARS
   ) {
     console.info(
@@ -281,39 +303,47 @@ exports.searchUsers = async (req, res) => {
     return res.status(400).end("]");
   }
 
-  //perform user search
-  let cursor;
-  if (searchByRole === "none") {
-    cursor = Users.find({
-      username: { $regex: req.body.partial, $options: "i" },
-    }).cursor();
-  } else {
-    cursor = Users.find({
-      username: { $regex: req.body.partial, $options: "i" },
-      role: searchByRole,
-    }).cursor();
-  }
-  let doc = await cursor.next();
-  let docNext;
-  while (doc != null) {
-    docNext = await cursor.next();
-    if (doc) {
-      userItem.username = doc.username;
-      userItem.role = doc.role;
-
-      res.write(JSON.stringify(userItem));
+  try {
+    //perform user search
+    let cursor;
+    if (searchByRole === "none") {
+      cursor = Users.find({
+        username: { $regex: req.body.partial, $options: "i" },
+      }).cursor();
+    } else {
+      cursor = Users.find({
+        username: { $regex: req.body.partial, $options: "i" },
+        role: searchByRole,
+      }).cursor();
     }
-    if (docNext) {
-      res.write(",");
+    let doc = await cursor.next();
+    let docNext;
+    while (doc != null) {
+      docNext = await cursor.next();
+      if (doc) {
+        userItem.username = doc.username;
+        userItem.role = doc.role;
+
+        res.write(JSON.stringify(userItem));
+      }
+      if (docNext) {
+        res.write(",");
+      }
+      doc = docNext;
     }
-    doc = docNext;
+
+    console.info(
+      "[POST][RES]: @api/admin/users/search\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse: Stream-Write-OK."
+    );
+
+    res.end("]");
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/admin/users/search\nDatabase-Query-Exception: Query call failed.\nQuery: Retrieving matching users.\nError-Log:\n",
+      err
+    );
+    res.status(500).end("{}]");
   }
-
-  console.info(
-    "[POST][RES]: @api/admin/users/search\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse: Stream-Write-OK."
-  );
-
-  res.end("]");
 };
 
 //POST @api/admin/users/role
@@ -327,12 +357,7 @@ exports.getUsersByRole = async (req, res) => {
   };
 
   //handle invalid request format
-  if (
-    !req.body.role ||
-    userRoles.findIndex((value, index, array) => {
-      return array[index] === req.body.role;
-    }) < 0
-  ) {
+  if (!req.body.role || isInvalidRole(req.body.role)) {
     console.info(
       "[POST][RES]: @api/admin/users/search\nAPI-Call-Result: 400.\nResult-Origin: Request params.\nResponse:\n",
       []
@@ -340,29 +365,85 @@ exports.getUsersByRole = async (req, res) => {
     return res.status(400).end("]");
   }
 
-  //get users that match the querried role
-  const cursor = Users.find({
-    role: req.body.role,
-  }).cursor();
-  let doc = await cursor.next();
-  let docNext;
-  while (doc != null) {
-    docNext = await cursor.next();
-    if (doc) {
-      userItem.username = doc.username;
-      userItem.role = doc.role;
+  try {
+    //get users that match the querried role
+    const cursor = Users.find({
+      role: req.body.role,
+    }).cursor();
+    let doc = await cursor.next();
+    let docNext;
+    while (doc != null) {
+      docNext = await cursor.next();
+      if (doc) {
+        userItem.username = doc.username;
+        userItem.role = doc.role;
 
-      res.write(JSON.stringify(userItem));
+        res.write(JSON.stringify(userItem));
+      }
+      if (docNext) {
+        res.write(",");
+      }
+      doc = docNext;
     }
-    if (docNext) {
-      res.write(",");
-    }
-    doc = docNext;
+
+    console.info(
+      "[POST][RES]: @api/admin/users/role\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse: Stream-Write-OK."
+    );
+
+    res.end("]");
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/admin/users/role\nDatabase-Query-Exception: Query call failed.\nQuery: Retrieving users of requested role.\nError-Log:\n",
+      err
+    );
+    res.status(500).end("{}]");
+  }
+};
+
+//POST @api/admin/users/delete
+exports.deleteUser = async (req, res) => {
+  let response = { deleteSuccess: false };
+
+  //handle bad request
+  if (!req.body.username || !req.body.role || isInvalidRole(req.body.role)) {
+    console.info(
+      "[POST][RES]: @api/admin/users/delete\nAPI-Call-Result: 400.\nResult-Origin: Request params.\nResponse:\n",
+      response
+    );
+    return res.status(400).json(response);
   }
 
-  console.info(
-    "[POST][RES]: @api/admin/users/role\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse: Stream-Write-OK."
-  );
-
-  res.end("]");
+  const userRole = req.body.role;
+  try {
+    let user = await Users.findOneAndRemove({
+      username: req.body.username,
+    });
+    let details;
+    switch (userRole) {
+      case "worker": {
+        await WorkerInfo.findByIdAndRemove(user.info);
+        break;
+      }
+      case "company": {
+        await CompanyInfo.findByIdAndRemove(user.info);
+        break;
+      }
+      case "admin": {
+        await AdminInfo.findByIdAndRemove(user.info);
+        break;
+      }
+    }
+    response.deleteSuccess = true;
+    console.info(
+      "[POST][RES]: @api/admin/users/delete\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
+      response
+    );
+    return res.status(200).json(response);
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/admin/users/delete\nDatabase-Query-Exception: Query call failed.\nQuery: Removing user.\nError-Log:\n",
+      err
+    );
+    return res.status(500).json(response);
+  }
 };

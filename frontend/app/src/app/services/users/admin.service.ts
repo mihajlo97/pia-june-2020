@@ -7,6 +7,7 @@ import {
   UserItem,
   UserSearchPartialRequest,
   SelectUsersByRoleRequest,
+  DeleteUserResponse,
 } from 'src/app/models/admin';
 import { Observable } from 'rxjs';
 
@@ -50,6 +51,14 @@ export class AdminService {
   getUsersByRole(req: SelectUsersByRoleRequest): Observable<UserItem[]> {
     return this.http.post<UserItem[]>(
       `${this._adminAPI}/users/role`,
+      req,
+      this._httpOptions
+    );
+  }
+
+  deleteUser(req: UserItem): Observable<DeleteUserResponse> {
+    return this.http.post<DeleteUserResponse>(
+      `${this._adminAPI}/users/delete`,
       req,
       this._httpOptions
     );

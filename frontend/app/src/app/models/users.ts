@@ -21,6 +21,21 @@ export interface Company {
 export interface Admin {
   username: string;
   password: string;
+  email: string;
+}
+
+export interface MasterAccountTemplate {
+  username: string;
+  password: string;
+  role: string;
+  email: string;
+  name?: string;
+  surname?: string;
+  birthdate?: Date;
+  birthplace?: string;
+  cellphone?: string;
+  foundingDate?: Date;
+  hq?: string;
 }
 
 export enum Roles {

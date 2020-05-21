@@ -5,10 +5,14 @@ import {
   UserItem,
   UserSearchPartialRequest,
   SelectUsersByRoleRequest,
+  DeleteUserResponse,
 } from 'src/app/models/admin';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { debounceTime } from 'rxjs/operators';
 import { Roles } from 'src/app/models/users';
+
+//use jQuery
+declare var $: any;
 
 @Component({
   selector: 'app-admin-manage',
@@ -37,6 +41,14 @@ export class AdminManageComponent implements OnInit {
   roleSelector: Roles[] = [Roles.ADMIN, Roles.WORKER, Roles.COMPANY];
   activeRole: Roles = Roles.NONE;
   readonly NO_ROLE: Roles = Roles.NONE;
+
+  //delete account
+  readyToDelete: UserItem = {
+    username: '',
+    role: Roles.NONE,
+  };
+  deleteUserSubscription: Subscription;
+  didDeleteUserFail: boolean = false;
 
   constructor(private admin: AdminService, private fb: FormBuilder) {
     this.searchForm = fb.group({
@@ -99,8 +111,30 @@ export class AdminManageComponent implements OnInit {
     }
   }
 
+  editAccount(username: string, role: Roles): void {}
+
+  markUserToDelete(username: string, role: Roles): void {
+    this.readyToDelete.role = role;
+    this.readyToDelete.username = username;
+    this.didDeleteUserFail = false;
+  }
+
+  confirmDeleteMarkedUser(): void {
+    this.deleteUserSubscription = this.admin
+      .deleteUser(this.readyToDelete)
+      .subscribe((res: DeleteUserResponse) => {
+        if (res.deleteSuccess) {
+          $('#deleteAccountModal').modal('hide');
+          this.getUsersByRole(this.activeRole);
+        } else {
+          this.didDeleteUserFail = true;
+        }
+      });
+  }
+
   ngOnDestroy(): void {
     this.usersStreamSubscription.unsubscribe();
     this.searchSubscription.unsubscribe();
+    this.deleteUserSubscription.unsubscribe();
   }
 }
