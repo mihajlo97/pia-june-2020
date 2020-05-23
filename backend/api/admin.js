@@ -277,6 +277,62 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
+//POST @api/admin/user/details
+exports.getUserDetails = async (req, res) => {
+  let response = {
+    email: "",
+  };
+  const userRole = req.body.role;
+
+  //handle invalid request format
+  if (!req.body.username || !req.body.role || isInvalidRole(req.body.role)) {
+    console.info(
+      "[POST][RES]: @api/admin/users/user\nAPI-Call-Result: 400.\nResult-Origin: Request params.\nResponse:\n",
+      response
+    );
+    return res.status(400).json(response);
+  }
+
+  try {
+    const user = await Users.findOne({
+      username: req.body.username,
+    })
+      .populate("info")
+      .exec();
+    switch (userRole) {
+      case "admin": {
+        response.email = user.info.email;
+      }
+      case "worker": {
+        response.name = user.info.name;
+        response.surname = user.info.surname;
+        response.birthdate = user.info.birthdate;
+        response.birthplace = user.info.birthplace;
+        response.cellphone = user.info.cellphone;
+        response.email = user.info.email;
+      }
+      case "company": {
+        response.name = user.info.name;
+        response.foundingDate = user.info.foundingDate;
+        response.hq = user.info.hq;
+        response.email = user.info.email;
+      }
+    }
+
+    console.info(
+      "[POST][RES]: @api/admin/user/details\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
+      response
+    );
+    return res.status(200).json(response);
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/admin/user/details\nDatabase-Query-Exception: Query call failed.\nQuery: Retrieving user details.\nError-Log:\n",
+      err
+    );
+    res.status(500).json(response);
+  }
+};
+
 //POST @api/admin/users/search
 exports.searchUsers = async (req, res) => {
   //setup response stream as array of JSON objects

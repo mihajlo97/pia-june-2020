@@ -31,7 +31,7 @@ export class WorkerRegisterComponent implements OnInit {
     user: null,
     token: this.captchaToken,
   };
-  responseSubscriber$: Subscription;
+  responseSubscriber: Subscription;
 
   //on server response
   failedAuthRecaptcha = false;
@@ -417,7 +417,7 @@ export class WorkerRegisterComponent implements OnInit {
     this.regRequest.token = this.captchaToken;
 
     //API call
-    this.responseSubscriber$ = this.registration
+    this.responseSubscriber = this.registration
       .sendWorkerRegistrationRequest(this.regRequest)
       .subscribe((res: SendWorkerRegistrationResponse) => {
         if (res.success) {
@@ -434,6 +434,8 @@ export class WorkerRegisterComponent implements OnInit {
   }
 
   ngOnDestroy(): void {
-    this.responseSubscriber$.unsubscribe();
+    if (this.responseSubscriber) {
+      this.responseSubscriber.unsubscribe();
+    }
   }
 }

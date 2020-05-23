@@ -10,6 +10,7 @@ import {
   DeleteUserResponse,
 } from 'src/app/models/admin';
 import { Observable } from 'rxjs';
+import { UserDetails } from 'src/app/models/users';
 
 @Injectable({
   providedIn: 'root',
@@ -51,6 +52,14 @@ export class AdminService {
   getUsersByRole(req: SelectUsersByRoleRequest): Observable<UserItem[]> {
     return this.http.post<UserItem[]>(
       `${this._adminAPI}/users/role`,
+      req,
+      this._httpOptions
+    );
+  }
+
+  getUserDetails(req: UserItem): Observable<UserDetails> {
+    return this.http.post<UserDetails>(
+      `${this._adminAPI}/user/details`,
       req,
       this._httpOptions
     );

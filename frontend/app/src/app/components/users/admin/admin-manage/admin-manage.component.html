@@ -80,7 +80,7 @@
         <button
           type="button"
           class="btn btn-outline-info mr-1"
-          (click)="editAccount(user.username, user.role)"
+          (click)="markUserToEdit(user.username, user.role)"
           data-toggle="modal"
           data-target="#editAccountModal"
         >
@@ -113,7 +113,7 @@
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="editAccountModalLabel">Edit account</h5>
+        <h5 class="modal-title" id="editAccountModalLabel">Edit user</h5>
         <button
           type="button"
           class="close"
@@ -124,10 +124,207 @@
         </button>
       </div>
       <div class="modal-body">
-        &nbsp;
+        <ng-template [ngIf]="!editUserModalPristine && !didEditUserLoadFail">
+          <form [formGroup]="editForm">
+            <div class="form-group">
+              <label for="username"><strong>Username:</strong></label>
+              <input
+                type="text"
+                class="form-control"
+                id="username"
+                formControlName="username"
+                disabled
+              />
+            </div>
+            <!--Admin edit-->
+            <div *ngIf="markedUserToEdit.role === roleSelector[0]">
+              <div class="form-group">
+                <label for="email"><strong>Email:</strong></label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="email"
+                  formControlName="email"
+                  required
+                />
+              </div>
+            </div>
+            <!--Worker edit-->
+            <div *ngIf="markedUserToEdit.role === roleSelector[1]">
+              <div class="form-group">
+                <label for="first-name"><strong>First name:</strong></label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="first-name"
+                  formControlName="firstName"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="last-name"><strong>Last name:</strong></label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="last-name"
+                  formControlName="lastName"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="birthdateD"
+                  ><strong>Date of birth (DD/MM/YYYY):</strong></label
+                >
+                <div class="d-flex flex-row">
+                  <input
+                    type="number"
+                    class="form-control"
+                    style="width: 7rem;"
+                    id="birthdateD"
+                    formControlName="birthdateDay"
+                    min="1"
+                    max="31"
+                    required
+                  />
+                  <input
+                    type="number"
+                    class="form-control"
+                    style="width: 7rem; margin-left: 0.5rem;"
+                    id="birthdateM"
+                    formControlName="birthdateMonth"
+                    min="1"
+                    max="12"
+                    required
+                  />
+                  <input
+                    type="number"
+                    class="form-control"
+                    style="width: 10rem; margin-left: 0.5rem;"
+                    id="birthdateY"
+                    formControlName="birthdateYear"
+                    min="1900"
+                    [max]="currentYear"
+                    required
+                  />
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="birthplace"><strong>Birthplace:</strong></label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="birthplace"
+                  formControlName="birthplace"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="phone-number"><strong>Phone number:</strong></label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="phone-number"
+                  formControlName="phoneNumber"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="email"><strong>Email:</strong></label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="email"
+                  formControlName="email"
+                  required
+                />
+              </div>
+            </div>
+            <!--Company edit-->
+            <div *ngIf="markedUserToEdit.role === roleSelector[2]">
+              <div class="form-group">
+                <label for="name"><strong>Company name:</strong></label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="name"
+                  formControlName="name"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="day"
+                  ><strong>Foundation date (DD/MM/YYYY):</strong></label
+                >
+                <div class="d-flex flex-row">
+                  <input
+                    type="number"
+                    class="form-control"
+                    style="width: 7rem;"
+                    id="day"
+                    formControlName="foundingDay"
+                    min="1"
+                    max="31"
+                    required
+                  />
+                  <input
+                    type="number"
+                    class="form-control"
+                    style="width: 7rem; margin-left: 0.5rem;"
+                    id="month"
+                    formControlName="foundingMonth"
+                    min="1"
+                    max="12"
+                    required
+                  />
+                  <input
+                    type="number"
+                    class="form-control"
+                    style="width: 10rem; margin-left: 0.5rem;"
+                    id="year"
+                    formControlName="foundingYear"
+                    min="1900"
+                    [max]="currentYear"
+                    required
+                  />
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="hq"><strong>Company headquarters:</strong></label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="hq"
+                  formControlName="hq"
+                  maxlength="100"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="email"><strong>Email:</strong></label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="email"
+                  formControlName="email"
+                  required
+                />
+              </div>
+            </div>
+          </form>
+        </ng-template>
+        <small class="text-danger" *ngIf="didEditUserLoadFail"
+          >Server encountered an error while fetching the user. Please try
+          again.</small
+        >
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-primary">Save</button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="confirmEditMarkedUser()"
+        >
+          Save
+        </button>
         <button type="button" class="btn btn-secondary" data-dismiss="modal">
           Cancel
         </button>
@@ -148,7 +345,7 @@
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="deleteAccountModalLabel">Delete account</h5>
+        <h5 class="modal-title" id="deleteAccountModalLabel">Delete user</h5>
         <button
           type="button"
           class="close"
@@ -159,7 +356,7 @@
         </button>
       </div>
       <div class="modal-body">
-        <span>Are you sure you want to delete this account?</span>
+        <span>Are you sure you want to delete this user?</span>
         <br />
         <ng-template *ngIf="didDeleteUserFail"
           ><small class="text-danger"

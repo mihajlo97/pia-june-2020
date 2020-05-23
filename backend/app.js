@@ -137,5 +137,11 @@ app.post(
   admin.deleteUser
 );
 
+app.post(
+  `${adminPath}/user/details`,
+  admin.checkAdminPrivilege,
+  admin.getUserDetails
+);
+
 //<====[TESTING]====>
 app.get("/test/add-admin", dbTest.addMasterAdmin);

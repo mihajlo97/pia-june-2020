@@ -18,14 +18,17 @@
     <ul class="navbar-nav mr-auto">
       <!--GUEST-MENU-->
       <li class="nav-item" *ngIf="showGuestMenu">
-        <a class="nav-link" routerLink="login" routerLinkActive="active"
+        <a
+          class="nav-link"
+          (click)="navigateToLogin()"
+          routerLinkActive="active"
           >Login</a
         >
       </li>
       <li class="nav-item" *ngIf="showGuestMenu">
         <a
           class="nav-link"
-          routerLink="register/choose-type"
+          (click)="navigateToRegister()"
           routerLinkActive="active"
           >Register</a
         >

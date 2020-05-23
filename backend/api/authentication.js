@@ -28,7 +28,7 @@ exports.loginUser = async (req, res) => {
   let response = { userOK: false, passOK: false, username: "", role: "" };
 
   //validate request
-  if (!req.body.username || !req.body.password || req.session.username) {
+  if (!req.body.username || !req.body.password) {
     console.info(
       "[POST][RES]: @api/authentication/login\nAPI-Call-Result: 400.\nResult-Origin: Request params.\nResponse:\n",
       response
@@ -84,7 +84,9 @@ exports.loginUser = async (req, res) => {
 
   //start session
   if (response.userOK && response.passOK) {
-    req.session.username = user.username;
+    if (!req.session.username) {
+      req.session.username = user.username;
+    }
     response.username = user.username;
     response.role = user.role;
     console.info(
@@ -102,9 +104,23 @@ exports.loginUser = async (req, res) => {
 };
 
 //>GET @api/authentication/login
-exports.userLoggedIn = (req, res) => {
-  let response = { isLoggedIn: false };
-  response.isLoggedIn = req.session.username ? true : false;
+exports.userLoggedIn = async (req, res) => {
+  let response = { username: "", role: "NONE" };
+  if (req.session.username) {
+    try {
+      const doc = await Users.findOne({
+        username: req.session.username,
+      }).select("role");
+      response.username = req.session.username;
+      response.role = doc.role;
+    } catch (err) {
+      console.error(
+        "[ERROR][DB]: @api/authentication/login\nDatabase-Query-Exception: Query call failed.\nQuery: Users.findOne\nError-Log:\n",
+        err
+      );
+      return res.status(500).json(response);
+    }
+  }
   console.info(
     "[GET][RES]: @api/authentication/login\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
     response

@@ -10,6 +10,7 @@ import {
 import { Observable } from 'rxjs';
 import { AuthenticationService } from '../services/authentication.service';
 import { Roles } from '../models/users';
+import { UserLoggedInResponse } from '../models/authetication';
 
 @Injectable({
   providedIn: 'root',
@@ -25,11 +26,17 @@ export class AdminAuthGuard implements CanActivate, CanActivateChild {
     | Promise<boolean | UrlTree>
     | boolean
     | UrlTree {
-    const role = this.auth.getUserRole();
-    if (role !== Roles.ADMIN) {
-      this.router.navigate(['forbidden']);
-    }
-    return role === Roles.ADMIN;
+    let response: UserLoggedInResponse;
+
+    const checkRole = async () => {
+      response = await this.auth.checkUserLoggedIn();
+      console.log('[DEBUG]: Response: ', response);
+      if (response.role !== Roles.ADMIN) {
+        this.router.navigate(['forbidden']);
+      }
+      return response.role === Roles.ADMIN;
+    };
+    return checkRole();
   }
   canActivateChild(
     next: ActivatedRouteSnapshot,

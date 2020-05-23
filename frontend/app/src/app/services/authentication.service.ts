@@ -72,25 +72,14 @@ export class AuthenticationService {
     return Promise.resolve(response);
   }
 
-  async checkUserLoggedIn(): Promise<boolean> {
-    let isLoggedIn: boolean;
-    await this.http
+  async checkUserLoggedIn(): Promise<UserLoggedInResponse> {
+    const response: UserLoggedInResponse = await this.http
       .get<UserLoggedInResponse>(`${this._authAPI}/login`, this._httpOptions)
-      .toPromise()
-      .then((res: UserLoggedInResponse) => {
-        isLoggedIn = res.isLoggedIn;
-      })
-      .catch((res: HttpErrorResponse) => {
-        isLoggedIn = res.error.isLoggedIn;
-        if (res.status >= 500) {
-          console.error(
-            'Authentication-Exception: An internal server error has occurred while checking the login status of the user.\n',
-            res
-          );
-        }
-      });
-
-    return Promise.resolve(isLoggedIn);
+      .toPromise();
+    this._navbarOption.loggedInUser = response.username;
+    this._navbarOption.userRole = response.role;
+    this._navbarOptionsSubject.next(this._navbarOption);
+    return Promise.resolve(response);
   }
 
   async attemptUserLogout(): Promise<boolean> {

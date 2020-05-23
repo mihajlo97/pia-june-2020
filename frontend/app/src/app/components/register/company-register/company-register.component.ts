@@ -32,7 +32,7 @@ export class CompanyRegisterComponent implements OnInit {
     user: null,
     token: this.captchaToken,
   };
-  responseSubscriber$: Subscription;
+  responseSubscriber: Subscription;
 
   //on server response
   failedAuthRecaptcha = false;
@@ -376,7 +376,7 @@ export class CompanyRegisterComponent implements OnInit {
     this.regRequest.token = this.captchaToken;
 
     //API call
-    this.responseSubscriber$ = this.registration
+    this.responseSubscriber = this.registration
       .sendCompanyRegistrationRequest(this.regRequest)
       .subscribe((res: SendCompanyRegistrationResponse) => {
         if (res.success) {
@@ -393,6 +393,8 @@ export class CompanyRegisterComponent implements OnInit {
   }
 
   ngOnDestroy(): void {
-    this.responseSubscriber$.unsubscribe();
+    if (this.responseSubscriber) {
+      this.responseSubscriber.unsubscribe();
+    }
   }
 }

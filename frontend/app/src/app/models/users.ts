@@ -24,10 +24,7 @@ export interface Admin {
   email: string;
 }
 
-export interface MasterAccountTemplate {
-  username: string;
-  password: string;
-  role: string;
+export interface UserDetails {
   email: string;
   name?: string;
   surname?: string;
