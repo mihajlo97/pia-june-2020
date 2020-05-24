@@ -8,6 +8,8 @@ import {
   UserSearchPartialRequest,
   SelectUsersByRoleRequest,
   DeleteUserResponse,
+  EditUserRequest,
+  EditUserResponse,
 } from 'src/app/models/admin';
 import { Observable } from 'rxjs';
 import { UserDetails } from 'src/app/models/users';
@@ -60,6 +62,14 @@ export class AdminService {
   getUserDetails(req: UserItem): Observable<UserDetails> {
     return this.http.post<UserDetails>(
       `${this._adminAPI}/user/details`,
+      req,
+      this._httpOptions
+    );
+  }
+
+  editUser(req: EditUserRequest): Observable<EditUserResponse> {
+    return this.http.post<EditUserResponse>(
+      `${this._adminAPI}/user/edit`,
       req,
       this._httpOptions
     );

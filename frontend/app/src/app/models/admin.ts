@@ -1,4 +1,4 @@
-import { Roles } from './users';
+import { Roles, UserDetails } from './users';
 
 export enum Tabs {
   HOME = 'home',
@@ -38,4 +38,14 @@ export interface SelectUsersByRoleRequest {
 
 export interface DeleteUserResponse {
   deleteSuccess: string;
+}
+
+export interface EditUserRequest {
+  username: string;
+  role: Roles;
+  details: UserDetails;
+}
+
+export interface EditUserResponse {
+  editSuccess: string;
 }

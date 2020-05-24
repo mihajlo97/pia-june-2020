@@ -104,7 +104,6 @@
 <div
   class="modal fade"
   id="editAccountModal"
-  data-backdrop="static"
   tabindex="-1"
   role="dialog"
   aria-labelledby="editAccountModalLabel"
@@ -316,11 +315,19 @@
           >Server encountered an error while fetching the user. Please try
           again.</small
         >
+        <small class="text-danger" *ngIf="didEditUserSubmitFail"
+          >Server encountered an error while saving the user changes. Please try
+          again.</small
+        >
+        <small class="text-danger" *ngIf="areChangesInvalid"
+          >Cannot submit invalid data. Please check that all the fields are
+          filled with data in the appropriate format.</small
+        >
       </div>
       <div class="modal-footer">
         <button
           type="button"
-          class="btn btn-primary"
+          class="btn btn-success"
           (click)="confirmEditMarkedUser()"
         >
           Save

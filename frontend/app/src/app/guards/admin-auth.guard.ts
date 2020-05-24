@@ -30,7 +30,6 @@ export class AdminAuthGuard implements CanActivate, CanActivateChild {
 
     const checkRole = async () => {
       response = await this.auth.checkUserLoggedIn();
-      console.log('[DEBUG]: Response: ', response);
       if (response.role !== Roles.ADMIN) {
         this.router.navigate(['forbidden']);
       }

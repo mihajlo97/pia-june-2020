@@ -503,3 +503,69 @@ exports.deleteUser = async (req, res) => {
     return res.status(500).json(response);
   }
 };
+
+//POST @api/admin/user/edit
+exports.editUser = async (req, res) => {
+  let response = { editSuccess: false };
+
+  //handle bad request
+  if (
+    !req.body.username ||
+    !req.body.role ||
+    isInvalidRole(req.body.role) ||
+    !req.body.details
+  ) {
+    console.info(
+      "[POST][RES]: @api/admin/user/edit\nAPI-Call-Result: 400.\nResult-Origin: Request params.\nResponse:\n",
+      response
+    );
+    return res.status(400).json(response);
+  }
+
+  const userRole = req.body.role;
+  try {
+    let user = await Users.findOne({
+      username: req.body.username,
+    });
+    let details;
+
+    switch (userRole) {
+      case "worker": {
+        details = await WorkerInfo.findById(user.info);
+        details.name = req.body.details.name;
+        details.surname = req.body.details.surname;
+        details.birthdate = req.body.details.birthdate;
+        details.birthplace = req.body.details.birthplace;
+        details.cellphone = req.body.details.cellphone;
+        details.email = req.body.details.email;
+        break;
+      }
+      case "company": {
+        details = await CompanyInfo.findById(user.info);
+        details.name = req.body.details.name;
+        details.foundingDate = req.body.details.foundingDate;
+        details.hq = req.body.details.hq;
+        details.email = req.body.details.email;
+        break;
+      }
+      case "admin": {
+        details = await AdminInfo.findById(user.info);
+        details.email = req.body.details.email;
+        break;
+      }
+    }
+    await details.save();
+    response.editSuccess = true;
+    console.info(
+      "[POST][RES]: @api/admin/user/edit\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
+      response
+    );
+    return res.status(200).json(response);
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/admin/user/edit\nDatabase-Query-Exception: Query call failed.\nQuery: Editing user.\nError-Log:\n",
+      err
+    );
+    return res.status(500).json(response);
+  }
+};

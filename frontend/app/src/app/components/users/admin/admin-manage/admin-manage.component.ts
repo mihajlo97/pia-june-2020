@@ -6,6 +6,8 @@ import {
   UserSearchPartialRequest,
   SelectUsersByRoleRequest,
   DeleteUserResponse,
+  EditUserRequest,
+  EditUserResponse,
 } from 'src/app/models/admin';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { debounceTime } from 'rxjs/operators';
@@ -61,6 +63,7 @@ export class AdminManageComponent implements OnInit {
   editForm: FormGroup;
   didEditUserLoadFail: boolean = false;
   didEditUserSubmitFail: boolean = false;
+  areChangesInvalid: boolean = false;
   readonly currentYear = new Date().getFullYear();
 
   constructor(private admin: AdminService, private fb: FormBuilder) {
@@ -139,6 +142,8 @@ export class AdminManageComponent implements OnInit {
   markUserToEdit(username: string, role: Roles): void {
     this.editUserModalPristine = false;
     this.didEditUserLoadFail = false;
+    this.areChangesInvalid = false;
+
     this.markedUserToEdit.role = role;
     this.markedUserToEdit.username = username;
 
@@ -149,7 +154,6 @@ export class AdminManageComponent implements OnInit {
           this.didEditUserLoadFail = true;
           return;
         }
-        console.log('[DEBUG]: Response: ', res);
         switch (role) {
           case Roles.ADMIN: {
             this.editForm.setValue({
@@ -214,13 +218,69 @@ export class AdminManageComponent implements OnInit {
       });
   }
 
+  confirmEditMarkedUser(): void {
+    this.didEditUserSubmitFail = false;
+    if (this.editForm.invalid) {
+      this.areChangesInvalid = true;
+      return;
+    }
+
+    if (this.editForm.pristine) {
+      return;
+    }
+
+    let req: EditUserRequest = {
+      username: this.markedUserToEdit.username,
+      role: this.markedUserToEdit.role,
+      details: {
+        email: this.editForm.value.email,
+      },
+    };
+
+    const formValue = this.editForm.value;
+    switch (this.markedUserToEdit.role) {
+      case Roles.WORKER: {
+        const birthdate = new Date();
+        birthdate.setDate(formValue.birthdateDay);
+        birthdate.setMonth(formValue.birthdateMonth);
+        birthdate.setFullYear(formValue.birthdateYear);
+
+        req.details.name = formValue.firstName;
+        req.details.surname = formValue.lastName;
+        req.details.cellphone = formValue.phoneNumber;
+        req.details.birthplace = formValue.birthplace;
+        req.details.birthdate = birthdate;
+        break;
+      }
+      case Roles.COMPANY: {
+        const founded = new Date();
+        founded.setDate(formValue.foundingDay);
+        founded.setMonth(formValue.foundingMonth);
+        founded.setFullYear(formValue.foundingYear);
+
+        req.details.name = formValue.name;
+        req.details.foundingDate = founded;
+        req.details.hq = formValue.hq;
+        break;
+      }
+    }
+
+    this.editUserSubscription = this.admin
+      .editUser(req)
+      .subscribe((res: EditUserResponse) => {
+        if (res.editSuccess) {
+          $('#editAccountModal').modal('hide');
+        } else {
+          this.didEditUserSubmitFail = true;
+        }
+      });
+  }
+
   markUserToDelete(username: string, role: Roles): void {
     this.markedUserToDelete.role = role;
     this.markedUserToDelete.username = username;
     this.didDeleteUserFail = false;
   }
-
-  confirmEditMarkedUser(): void {}
 
   confirmDeleteMarkedUser(): void {
     this.deleteUserSubscription = this.admin
