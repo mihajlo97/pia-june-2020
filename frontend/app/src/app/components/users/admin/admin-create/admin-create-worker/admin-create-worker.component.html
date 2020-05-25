@@ -1,0 +1,226 @@
+<h5>User account</h5>
+<form [formGroup]="createForm" (ngSubmit)="createUser()">
+  <div class="form-group">
+    <label for="username">Username:</label>
+    <input
+      type="text"
+      id="username"
+      class="form-control"
+      formControlName="username"
+      [class.is-invalid]="
+        createForm.get('username').dirty && createForm.get('username').invalid
+      "
+      [class.is-valid]="createForm.get('username').valid"
+      required
+    />
+  </div>
+  <div class="form-group">
+    <label for="password">Password:</label>
+    <input
+      type="text"
+      id="password"
+      class="form-control"
+      formControlName="password"
+      [class.is-invalid]="
+        createForm.get('password').dirty && createForm.get('password').invalid
+      "
+      [class.is-valid]="createForm.get('password').valid"
+      required
+    />
+  </div>
+  <div class="form-group">
+    <label for="first-name">First name:</label>
+    <input
+      type="text"
+      id="first-name"
+      class="form-control"
+      formControlName="firstName"
+      [class.is-invalid]="
+        createForm.get('firstName').dirty && createForm.get('firstName').invalid
+      "
+      [class.is-valid]="createForm.get('firstName').valid"
+      required
+    />
+  </div>
+  <div class="form-group">
+    <label for="last-name">Last name:</label>
+    <input
+      type="text"
+      id="last-name"
+      class="form-control"
+      formControlName="lastName"
+      [class.is-invalid]="
+        createForm.get('lastName').dirty && createForm.get('lastName').invalid
+      "
+      [class.is-valid]="createForm.get('lastName').valid"
+      required
+    />
+  </div>
+  <div class="form-group">
+    <label for="birthdateDay">Birthdate (DD/MM/YYYY):</label>
+    <div class="d-flex flex-row">
+      <input
+        type="number"
+        id="birthdateDay"
+        class="form-control"
+        formControlName="birthdateDay"
+        style="width: 7rem;"
+        [class.is-invalid]="
+          createForm.get('birthdateDay').dirty &&
+          createForm.get('birthdateDay').invalid
+        "
+        [class.is-valid]="createForm.get('birthdateDay').valid"
+        min="1"
+        max="31"
+        required
+      />
+      <input
+        type="number"
+        id="birthdateMonth"
+        class="form-control ml-1"
+        style="width: 7rem;"
+        formControlName="birthdateMonth"
+        [class.is-invalid]="
+          createForm.get('birthdateMonth').dirty &&
+          createForm.get('birthdateMonth').invalid
+        "
+        [class.is-valid]="createForm.get('birthdateMonth').valid"
+        min="1"
+        max="12"
+        required
+      />
+      <input
+        type="number"
+        id="birthdateMonth"
+        class="form-control ml-1"
+        style="width: 10rem;"
+        formControlName="birthdateYear"
+        [class.is-invalid]="
+          createForm.get('birthdateYear').dirty &&
+          createForm.get('birthdateYear').invalid
+        "
+        [class.is-valid]="createForm.get('birthdateYear').valid"
+        min="1900"
+        [max]="currentYear"
+        required
+      />
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="birthplace">Birthplace:</label>
+    <input
+      type="text"
+      id="birthplace"
+      class="form-control"
+      formControlName="birthplace"
+      [class.is-invalid]="
+        createForm.get('birthplace').dirty &&
+        createForm.get('birthplace').invalid
+      "
+      [class.is-valid]="createForm.get('birthplace').valid"
+      required
+    />
+  </div>
+  <div class="form-group">
+    <label for="phoneNumber">Phone number:</label>
+    <input
+      type="text"
+      id="phoneNumber"
+      class="form-control"
+      formControlName="phoneNumber"
+      [class.is-invalid]="
+        createForm.get('phoneNumber').dirty &&
+        createForm.get('phoneNumber').invalid
+      "
+      [class.is-valid]="createForm.get('phoneNumber').valid"
+      placeholder="Ex: +381(0)651234567"
+      required
+    />
+  </div>
+  <div class="form-group">
+    <label for="email">Email:</label>
+    <input
+      type="text"
+      id="email"
+      class="form-control"
+      formControlName="email"
+      [class.is-invalid]="
+        createForm.get('email').dirty && createForm.get('email').invalid
+      "
+      [class.is-valid]="createForm.get('email').valid"
+      placeholder="Ex: person@company.com"
+      required
+    />
+  </div>
+  <div class="form-group" *ngIf="didServerCreatUserFail">
+    <small class="text-danger"
+      >Server encountered an error while attempting to create the user. Please
+      try again.</small
+    >
+  </div>
+  <div class="form-group" *ngIf="usernameAlreadyTaken">
+    <small class="text-danger"
+      >User with the username
+      <span class="text-monospace">{{ createForm.value.username }}</span>
+      already exists.</small
+    >
+  </div>
+  <div class="form-group" style="text-align: center;">
+    <button
+      type="submit"
+      class="btn btn-outline-success"
+      style="width: 7rem;"
+      [disabled]="createForm.pristine || createForm.invalid"
+    >
+      Create
+    </button>
+    <button
+      type="button"
+      class="btn btn-outline-secondary ml-1"
+      style="width: 7rem;"
+      (click)="clearForm()"
+    >
+      Clear
+    </button>
+  </div>
+</form>
+
+<div
+  class="modal fade"
+  id="successModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="successModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="successModalLabel">Create new user</h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        User
+        <span class="text-monospace">{{ createForm.value.username }}</span>
+        created successfully!
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-outline-primary"
+          style="width: 4rem;"
+          (click)="closeModal()"
+        >
+          Ok
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

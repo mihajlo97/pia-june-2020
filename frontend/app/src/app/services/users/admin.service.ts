@@ -10,9 +10,12 @@ import {
   DeleteUserResponse,
   EditUserRequest,
   EditUserResponse,
+  CreateUserRequest,
+  CreateUserResponse,
 } from 'src/app/models/admin';
 import { Observable } from 'rxjs';
 import { UserDetails } from 'src/app/models/users';
+import { share } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
@@ -65,6 +68,16 @@ export class AdminService {
       req,
       this._httpOptions
     );
+  }
+
+  createUser(req: CreateUserRequest): Promise<CreateUserResponse> {
+    return this.http
+      .post<CreateUserResponse>(
+        `${this._adminAPI}/user`,
+        req,
+        this._httpOptions
+      )
+      .toPromise();
   }
 
   editUser(req: EditUserRequest): Observable<EditUserResponse> {

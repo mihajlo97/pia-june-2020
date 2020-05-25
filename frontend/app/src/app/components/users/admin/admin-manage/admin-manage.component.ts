@@ -9,7 +9,13 @@ import {
   EditUserRequest,
   EditUserResponse,
 } from 'src/app/models/admin';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  ValidatorFn,
+  AbstractControl,
+} from '@angular/forms';
 import { debounceTime } from 'rxjs/operators';
 import { Roles, UserDetails } from 'src/app/models/users';
 
@@ -58,12 +64,11 @@ export class AdminManageComponent implements OnInit {
     role: Roles.NONE,
   };
   editUserSubscription: Subscription;
-  editUserModalPristine: boolean = true;
   userDetails: UserDetails;
   editForm: FormGroup;
   didEditUserLoadFail: boolean = false;
   didEditUserSubmitFail: boolean = false;
-  areChangesInvalid: boolean = false;
+  editUserModalPristine: boolean = true;
   readonly currentYear = new Date().getFullYear();
 
   constructor(private admin: AdminService, private fb: FormBuilder) {
@@ -72,19 +77,19 @@ export class AdminManageComponent implements OnInit {
     });
     this.editForm = this.fb.group({
       username: ['', Validators.required],
-      firstName: ['', Validators.required],
-      lastName: ['', Validators.required],
-      birthdateDay: ['', Validators.required],
-      birthdateMonth: ['', Validators.required],
-      birthdateYear: ['', Validators.required],
-      birthplace: ['', Validators.required],
-      phoneNumber: ['', Validators.required],
+      firstName: ['', this.applyRoleBasedValidation(Roles.WORKER)],
+      lastName: ['', this.applyRoleBasedValidation(Roles.WORKER)],
+      birthdateDay: ['', this.applyRoleBasedValidation(Roles.WORKER)],
+      birthdateMonth: ['', this.applyRoleBasedValidation(Roles.WORKER)],
+      birthdateYear: ['', this.applyRoleBasedValidation(Roles.WORKER)],
+      birthplace: ['', this.applyRoleBasedValidation(Roles.WORKER)],
+      phoneNumber: ['', this.applyRoleBasedValidation(Roles.WORKER)],
       email: ['', Validators.compose([Validators.required, Validators.email])],
-      name: ['', Validators.required],
-      foundingDay: ['', Validators.required],
-      foundingMonth: ['', Validators.required],
-      foundingYear: ['', Validators.required],
-      hq: ['', Validators.required],
+      name: ['', this.applyRoleBasedValidation(Roles.COMPANY)],
+      foundingDay: ['', this.applyRoleBasedValidation(Roles.COMPANY)],
+      foundingMonth: ['', this.applyRoleBasedValidation(Roles.COMPANY)],
+      foundingYear: ['', this.applyRoleBasedValidation(Roles.COMPANY)],
+      hq: ['', this.applyRoleBasedValidation(Roles.COMPANY)],
     });
     this.usersStream$ = this.admin.getAllUsers();
     this.usersStreamSubscription = this.usersStream$.subscribe();
@@ -92,6 +97,47 @@ export class AdminManageComponent implements OnInit {
   }
 
   ngOnInit(): void {}
+
+  applyRoleBasedValidation(role: Roles): ValidatorFn {
+    switch (role) {
+      case Roles.ADMIN: {
+        return (control: AbstractControl): { [key: string]: any } => {
+          if (!control) {
+            return null;
+          }
+
+          if (this.markedUserToEdit.role === role) {
+            return control.value === '' ? { invalidField: true } : null;
+          }
+          return null;
+        };
+      }
+      case Roles.COMPANY: {
+        return (control: AbstractControl): { [key: string]: any } => {
+          if (!control) {
+            return null;
+          }
+
+          if (this.markedUserToEdit.role === role) {
+            return control.value === '' ? { invalidField: true } : null;
+          }
+          return null;
+        };
+      }
+      case Roles.WORKER: {
+        return (control: AbstractControl): { [key: string]: any } => {
+          if (!control) {
+            return null;
+          }
+
+          if (this.markedUserToEdit.role === role) {
+            return control.value === '' ? { invalidField: true } : null;
+          }
+          return null;
+        };
+      }
+    }
+  }
 
   setSearchUsersSubscription(): void {
     this.searchSubscription = this.searchForm
@@ -142,7 +188,6 @@ export class AdminManageComponent implements OnInit {
   markUserToEdit(username: string, role: Roles): void {
     this.editUserModalPristine = false;
     this.didEditUserLoadFail = false;
-    this.areChangesInvalid = false;
 
     this.markedUserToEdit.role = role;
     this.markedUserToEdit.username = username;
@@ -221,7 +266,6 @@ export class AdminManageComponent implements OnInit {
   confirmEditMarkedUser(): void {
     this.didEditUserSubmitFail = false;
     if (this.editForm.invalid) {
-      this.areChangesInvalid = true;
       return;
     }
 
@@ -274,6 +318,11 @@ export class AdminManageComponent implements OnInit {
           this.didEditUserSubmitFail = true;
         }
       });
+  }
+
+  cancelEdit(): void {
+    this.didEditUserSubmitFail = false;
+    this.editForm.reset();
   }
 
   markUserToDelete(username: string, role: Roles): void {

@@ -20,6 +20,9 @@ import { AdminHomeComponent } from './components/users/admin/admin-home/admin-ho
 import { AdminManageComponent } from './components/users/admin/admin-manage/admin-manage.component';
 import { AdminCreateComponent } from './components/users/admin/admin-create/admin-create.component';
 import { AdminDashboardComponent } from './components/users/admin/admin-dashboard/admin-dashboard.component';
+import { AdminCreateWorkerComponent } from './components/users/admin/admin-create/admin-create-worker/admin-create-worker.component';
+import { AdminCreateCompanyComponent } from './components/users/admin/admin-create/admin-create-company/admin-create-company.component';
+import { AdminCreateAdminComponent } from './components/users/admin/admin-create/admin-create-admin/admin-create-admin.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -87,6 +90,11 @@ const routes: Routes = [
           {
             path: 'create',
             component: AdminCreateComponent,
+            children: [
+              { path: 'worker', component: AdminCreateWorkerComponent },
+              { path: 'company', component: AdminCreateCompanyComponent },
+              { path: 'admin', component: AdminCreateAdminComponent },
+            ],
           },
         ],
       },

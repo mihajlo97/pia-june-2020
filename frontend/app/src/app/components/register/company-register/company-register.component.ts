@@ -116,11 +116,11 @@ export class CompanyRegisterComponent implements OnInit {
         ]),
       ],
       foundingDay: [
-        '25',
+        '1',
         Validators.compose([Validators.required, this.foundingDayValidator()]),
       ],
       foundingMonth: [
-        '5',
+        '1',
         Validators.compose([
           Validators.required,
           this.foundingMonthValidator(),

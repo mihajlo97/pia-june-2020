@@ -48,14 +48,12 @@ export class NavbarComponent implements OnInit {
 
   navigateToLogin(): void {
     this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
-      console.log('[DEBUG]: Nagivate-Login.');
       this.router.navigate(['login']);
     });
   }
 
   navigateToRegister(): void {
     this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
-      console.log('[DEBUG]: Nagivate-Register.');
       this.router.navigate(['register']);
     });
   }

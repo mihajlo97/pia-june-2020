@@ -104,6 +104,7 @@
 <div
   class="modal fade"
   id="editAccountModal"
+  data-backdrop="static"
   tabindex="-1"
   role="dialog"
   aria-labelledby="editAccountModalLabel"
@@ -113,14 +114,6 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="editAccountModalLabel">Edit user</h5>
-        <button
-          type="button"
-          class="close"
-          data-dismiss="modal"
-          aria-label="Close"
-        >
-          <span aria-hidden="true">&times;</span>
-        </button>
       </div>
       <div class="modal-body">
         <ng-template [ngIf]="!editUserModalPristine && !didEditUserLoadFail">
@@ -144,6 +137,12 @@
                   class="form-control"
                   id="email"
                   formControlName="email"
+                  [class.is-invalid]="
+                    editForm.get('email').dirty && editForm.get('email').invalid
+                  "
+                  [class.is-valid]="
+                    editForm.get('email').dirty && editForm.get('email').valid
+                  "
                   required
                 />
               </div>
@@ -157,6 +156,14 @@
                   class="form-control"
                   id="first-name"
                   formControlName="firstName"
+                  [class.is-invalid]="
+                    editForm.get('firstName').dirty &&
+                    editForm.get('firstName').invalid
+                  "
+                  [class.is-valid]="
+                    editForm.get('firstName').dirty &&
+                    editForm.get('firstName').valid
+                  "
                   required
                 />
               </div>
@@ -167,6 +174,14 @@
                   class="form-control"
                   id="last-name"
                   formControlName="lastName"
+                  [class.is-invalid]="
+                    editForm.get('lastName').dirty &&
+                    editForm.get('lastName').invalid
+                  "
+                  [class.is-valid]="
+                    editForm.get('lastName').dirty &&
+                    editForm.get('lastName').valid
+                  "
                   required
                 />
               </div>
@@ -181,6 +196,14 @@
                     style="width: 7rem;"
                     id="birthdateD"
                     formControlName="birthdateDay"
+                    [class.is-invalid]="
+                      editForm.get('birthdateDay').dirty &&
+                      editForm.get('birthdateDay').invalid
+                    "
+                    [class.is-valid]="
+                      editForm.get('birthdateDay').dirty &&
+                      editForm.get('birthdateDay').valid
+                    "
                     min="1"
                     max="31"
                     required
@@ -191,6 +214,14 @@
                     style="width: 7rem; margin-left: 0.5rem;"
                     id="birthdateM"
                     formControlName="birthdateMonth"
+                    [class.is-invalid]="
+                      editForm.get('birthdateMonth').dirty &&
+                      editForm.get('birthdateMonth').invalid
+                    "
+                    [class.is-valid]="
+                      editForm.get('birthdateMonth').dirty &&
+                      editForm.get('birthdateMonth').valid
+                    "
                     min="1"
                     max="12"
                     required
@@ -201,6 +232,14 @@
                     style="width: 10rem; margin-left: 0.5rem;"
                     id="birthdateY"
                     formControlName="birthdateYear"
+                    [class.is-invalid]="
+                      editForm.get('birthdateYear').dirty &&
+                      editForm.get('birthdateYear').invalid
+                    "
+                    [class.is-valid]="
+                      editForm.get('birthdateYear').dirty &&
+                      editForm.get('birthdateYear').valid
+                    "
                     min="1900"
                     [max]="currentYear"
                     required
@@ -214,6 +253,14 @@
                   class="form-control"
                   id="birthplace"
                   formControlName="birthplace"
+                  [class.is-invalid]="
+                    editForm.get('birthplace').dirty &&
+                    editForm.get('birthplace').invalid
+                  "
+                  [class.is-valid]="
+                    editForm.get('birthplace').dirty &&
+                    editForm.get('birthplace').valid
+                  "
                   required
                 />
               </div>
@@ -224,6 +271,14 @@
                   class="form-control"
                   id="phone-number"
                   formControlName="phoneNumber"
+                  [class.is-invalid]="
+                    editForm.get('phoneNumber').dirty &&
+                    editForm.get('phoneNumber').invalid
+                  "
+                  [class.is-valid]="
+                    editForm.get('phoneNumber').dirty &&
+                    editForm.get('phoneNumber').valid
+                  "
                   required
                 />
               </div>
@@ -234,6 +289,12 @@
                   class="form-control"
                   id="email"
                   formControlName="email"
+                  [class.is-invalid]="
+                    editForm.get('email').dirty && editForm.get('email').invalid
+                  "
+                  [class.is-valid]="
+                    editForm.get('email').dirty && editForm.get('email').valid
+                  "
                   required
                 />
               </div>
@@ -247,6 +308,12 @@
                   class="form-control"
                   id="name"
                   formControlName="name"
+                  [class.is-invalid]="
+                    editForm.get('name').dirty && editForm.get('name').invalid
+                  "
+                  [class.is-valid]="
+                    editForm.get('name').dirty && editForm.get('name').valid
+                  "
                   required
                 />
               </div>
@@ -261,6 +328,14 @@
                     style="width: 7rem;"
                     id="day"
                     formControlName="foundingDay"
+                    [class.is-invalid]="
+                      editForm.get('foundingDay').dirty &&
+                      editForm.get('foundingDay').invalid
+                    "
+                    [class.is-valid]="
+                      editForm.get('foundingDay').dirty &&
+                      editForm.get('foundingDay').valid
+                    "
                     min="1"
                     max="31"
                     required
@@ -271,6 +346,14 @@
                     style="width: 7rem; margin-left: 0.5rem;"
                     id="month"
                     formControlName="foundingMonth"
+                    [class.is-invalid]="
+                      editForm.get('foundingMonth').dirty &&
+                      editForm.get('foundingMonth').invalid
+                    "
+                    [class.is-valid]="
+                      editForm.get('foundingMonth').dirty &&
+                      editForm.get('foundingMonth').valid
+                    "
                     min="1"
                     max="12"
                     required
@@ -281,7 +364,15 @@
                     style="width: 10rem; margin-left: 0.5rem;"
                     id="year"
                     formControlName="foundingYear"
-                    min="1900"
+                    [class.is-invalid]="
+                      editForm.get('foundingYear').dirty &&
+                      editForm.get('foundingYear').invalid
+                    "
+                    [class.is-valid]="
+                      editForm.get('foundingYear').dirty &&
+                      editForm.get('foundingYear').valid
+                    "
+                    min="1000"
                     [max]="currentYear"
                     required
                   />
@@ -294,6 +385,12 @@
                   class="form-control"
                   id="hq"
                   formControlName="hq"
+                  [class.is-invalid]="
+                    editForm.get('hq').dirty && editForm.get('hq').invalid
+                  "
+                  [class.is-valid]="
+                    editForm.get('hq').dirty && editForm.get('hq').valid
+                  "
                   maxlength="100"
                   required
                 />
@@ -305,6 +402,12 @@
                   class="form-control"
                   id="email"
                   formControlName="email"
+                  [class.is-invalid]="
+                    editForm.get('email').dirty && editForm.get('email').invalid
+                  "
+                  [class.is-valid]="
+                    editForm.get('email').dirty && editForm.get('email').valid
+                  "
                   required
                 />
               </div>
@@ -319,20 +422,25 @@
           >Server encountered an error while saving the user changes. Please try
           again.</small
         >
-        <small class="text-danger" *ngIf="areChangesInvalid"
-          >Cannot submit invalid data. Please check that all the fields are
-          filled with data in the appropriate format.</small
+        <small class="text-danger" *ngIf="editForm.dirty && editForm.invalid"
+          >Invalid field value.</small
         >
       </div>
       <div class="modal-footer">
         <button
           type="button"
-          class="btn btn-success"
+          class="btn btn-outline-success"
           (click)="confirmEditMarkedUser()"
+          [disabled]="editForm.pristine || editForm.invalid"
         >
           Save
         </button>
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          (click)="cancelEdit()"
+          data-dismiss="modal"
+        >
           Cancel
         </button>
       </div>
@@ -375,12 +483,16 @@
       <div class="modal-footer">
         <button
           type="button"
-          class="btn btn-danger"
+          class="btn btn-outline-danger"
           (click)="confirmDeleteMarkedUser()"
         >
           Delete
         </button>
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          data-dismiss="modal"
+        >
           Cancel
         </button>
       </div>

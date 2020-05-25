@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
 const users = require("../models/users");
 const registration = require("../models/registration_requests");
 
@@ -71,21 +72,40 @@ exports.getPendingRequests = async (req, res) => {
   try {
     //write to stream worker registration requests
     const workerRole = "worker";
-    for await (const doc of WorkerItems.find()) {
+    let cursor = WorkerItems.find()
+      .collation({ locale: "en" })
+      .sort("username")
+      .cursor();
+    let doc = await cursor.next();
+    let docNext;
+    let itemsWritten = 0;
+    while (doc != null) {
+      docNext = await cursor.next();
       if (doc) {
         pendingItem.username = doc.username;
         pendingItem.email = doc.email;
         pendingItem.role = workerRole;
+        itemsWritten++;
 
-        res.write(`${JSON.stringify(pendingItem)},`);
+        res.write(JSON.stringify(pendingItem));
       }
+      if (docNext) {
+        res.write(",");
+      }
+      doc = docNext;
+    }
+
+    if (itemsWritten > 0) {
+      res.write(",");
     }
 
     //write to stream company registration requests
     const companyRole = "company";
-    const cursor = CompanyItems.find().cursor();
-    let doc = await cursor.next();
-    let docNext;
+    cursor = CompanyItems.find()
+      .collation({ locale: "en" })
+      .sort("username")
+      .cursor();
+    doc = await cursor.next();
     while (doc != null) {
       docNext = await cursor.next();
       if (doc) {
@@ -123,7 +143,7 @@ exports.acceptOrRejectPendingRequest = async (req, res) => {
     !req.body.username ||
     !req.body.role ||
     isInvalidRole(req.body.role) ||
-    acceptItem in req.body
+    !("acceptItem" in req.body)
   ) {
     console.info(
       "[POST][RES]: @api/admin/pending\nAPI-Call-Result: 400.\nResult-Origin: Request params.\nResponse:\n",
@@ -169,7 +189,7 @@ exports.acceptOrRejectPendingRequest = async (req, res) => {
     return res.status(500).json(response);
   }
 
-  //finalize response for action reject account
+  //finalize response for action reject registration request
   if (req.body.acceptItem === false) {
     response.actionSuccess = true;
     console.info(
@@ -179,7 +199,7 @@ exports.acceptOrRejectPendingRequest = async (req, res) => {
     return res.status(200).json(response);
   }
 
-  //on action account accept, add account to users in the db and store details in appropriate collection
+  //on action registration accept, add account to users in the db and store details in appropriate collection
   try {
     let accountDetails;
 
@@ -246,7 +266,10 @@ exports.getAllUsers = async (req, res) => {
 
   try {
     //write to stream user item
-    const cursor = Users.find().cursor();
+    const cursor = Users.find()
+      .collation({ locale: "en" })
+      .sort("username")
+      .cursor();
     let doc = await cursor.next();
     let docNext;
     while (doc != null) {
@@ -365,12 +388,18 @@ exports.searchUsers = async (req, res) => {
     if (searchByRole === "none") {
       cursor = Users.find({
         username: { $regex: req.body.partial, $options: "i" },
-      }).cursor();
+      })
+        .collation({ locale: "en" })
+        .sort("username")
+        .cursor();
     } else {
       cursor = Users.find({
         username: { $regex: req.body.partial, $options: "i" },
         role: searchByRole,
-      }).cursor();
+      })
+        .collation({ locale: "en" })
+        .sort("username")
+        .cursor();
     }
     let doc = await cursor.next();
     let docNext;
@@ -425,7 +454,10 @@ exports.getUsersByRole = async (req, res) => {
     //get users that match the querried role
     const cursor = Users.find({
       role: req.body.role,
-    }).cursor();
+    })
+      .collation({ locale: "en" })
+      .sort("username")
+      .cursor();
     let doc = await cursor.next();
     let docNext;
     while (doc != null) {
@@ -561,6 +593,120 @@ exports.editUser = async (req, res) => {
       response
     );
     return res.status(200).json(response);
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/admin/user/edit\nDatabase-Query-Exception: Query call failed.\nQuery: Editing user.\nError-Log:\n",
+      err
+    );
+    return res.status(500).json(response);
+  }
+};
+
+//POST @api/admin/user
+exports.createNewUser = async (req, res) => {
+  let response = { usernameTaken: true, createSuccess: false };
+
+  //handle bad request
+  if (
+    !req.body.username ||
+    !req.body.password ||
+    !req.body.role ||
+    isInvalidRole(req.body.role) ||
+    !req.body.details
+  ) {
+    console.info(
+      "[POST][RES]: @api/admin/user\nAPI-Call-Result: 400.\nResult-Origin: Request params.\nResponse:\n",
+      response
+    );
+    return res.status(400).json(response);
+  }
+
+  const userRole = req.body.role;
+  try {
+    const usernameCheck = await Users.findOne({
+      username: req.body.username,
+    }).exec();
+
+    if (usernameCheck) {
+      console.info(
+        "[POST][RES]: @api/admin/user\nAPI-Call-Result: 200.\nResult-Origin: Username taken.\nResponse:\n",
+        response
+      );
+      return res.status(200).json(response);
+    } else {
+      response.usernameTaken = false;
+    }
+
+    let details;
+    let infoCollection;
+
+    switch (userRole) {
+      case "worker": {
+        details = await WorkerInfo.create({
+          name: req.body.details.name,
+          surname: req.body.details.surname,
+          birthdate: req.body.details.birthdate,
+          birthplace: req.body.details.birthplace,
+          cellphone: req.body.details.cellphone,
+          email: req.body.details.email,
+        });
+        infoCollection = "WorkerInfo";
+        break;
+      }
+      case "company": {
+        details = await CompanyInfo.create({
+          name: req.body.details.name,
+          foundingDate: req.body.details.foundingDate,
+          hq: req.body.details.hq,
+          email: req.body.details.email,
+        });
+        infoCollection = "CompanyInfo";
+        break;
+      }
+      case "admin": {
+        details = await AdminInfo.create({
+          email: req.body.details.email,
+        });
+        infoCollection = "AdminInfo";
+      }
+    }
+
+    let saltValue;
+    let passwordHash;
+    try {
+      saltValue = await bcrypt.genSalt();
+      passwordHash = await bcrypt.hash(req.body.password, saltValue);
+    } catch (err) {
+      console.error(
+        "[ERROR]: @api/admin/user\nPassword-Hashing-Exception: Password hashing failed.\nError-Log:\n",
+        err
+      );
+      return res.status(500).json(response);
+    }
+
+    const user = await Users.create({
+      username: req.body.username,
+      password: passwordHash,
+      salt: saltValue,
+      role: userRole,
+      info: details._id,
+      infoSelector: infoCollection,
+    });
+
+    if (user) {
+      response.createSuccess = true;
+      console.info(
+        "[POST][RES]: @api/admin/user\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
+        response
+      );
+      return res.status(200).json(response);
+    } else {
+      console.info(
+        "[POST][RES]: @api/admin/user\nAPI-Call-Result: 500.\nResult-Origin: Creating new user.\nResponse:\n",
+        response
+      );
+      return res.status(500).json(response);
+    }
   } catch (err) {
     console.error(
       "[ERROR][DB]: @api/admin/user/edit\nDatabase-Query-Exception: Query call failed.\nQuery: Editing user.\nError-Log:\n",

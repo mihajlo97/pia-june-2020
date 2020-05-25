@@ -1,1 +1,42 @@
-<p>admin-create works!</p>
+<h5>Create new user</h5>
+<div class="d-flex">
+  <div>
+    <ul class="nav nav-pills">
+      <li class="nav-item">
+        <a
+          class="nav-link"
+          [class.active]="selectedRoles[0]"
+          (click)="loadCreateForm(roleSelector[0])"
+          onclick="event.preventDefault();"
+          href="#"
+          >Worker</a
+        >
+      </li>
+      <li class="nav-item">
+        <a
+          class="nav-link"
+          [class.active]="selectedRoles[1]"
+          (click)="loadCreateForm(roleSelector[1])"
+          onclick="event.preventDefault();"
+          href="#"
+          >Company</a
+        >
+      </li>
+      <li class="nav-item">
+        <a
+          class="nav-link"
+          [class.active]="selectedRoles[2]"
+          (click)="loadCreateForm(roleSelector[2])"
+          onclick="event.preventDefault();"
+          href="#"
+          >Admin</a
+        >
+      </li>
+    </ul>
+  </div>
+</div>
+<div class="card mt-3">
+  <div class="card-body">
+    <router-outlet></router-outlet>
+  </div>
+</div>

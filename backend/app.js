@@ -145,5 +145,7 @@ app.post(
 
 app.post(`${adminPath}/user/edit`, admin.checkAdminPrivilege, admin.editUser);
 
+app.post(`${adminPath}/user`, admin.checkAdminPrivilege, admin.createNewUser);
+
 //<====[TESTING]====>
 app.get("/test/add-admin", dbTest.addMasterAdmin);

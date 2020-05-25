@@ -37,7 +37,7 @@ export interface SelectUsersByRoleRequest {
 }
 
 export interface DeleteUserResponse {
-  deleteSuccess: string;
+  deleteSuccess: boolean;
 }
 
 export interface EditUserRequest {
@@ -47,5 +47,17 @@ export interface EditUserRequest {
 }
 
 export interface EditUserResponse {
-  editSuccess: string;
+  editSuccess: boolean;
+}
+
+export interface CreateUserRequest {
+  role: Roles;
+  username: string;
+  password: string;
+  details: UserDetails;
+}
+
+export interface CreateUserResponse {
+  usernameTaken: boolean;
+  createSuccess: boolean;
 }

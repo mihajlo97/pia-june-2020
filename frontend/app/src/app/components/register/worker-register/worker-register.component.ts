@@ -127,11 +127,11 @@ export class WorkerRegisterComponent implements OnInit {
         ]),
       ],
       birthDateDay: [
-        '25',
+        '1',
         Validators.compose([Validators.required, this.birthdateDayValidator()]),
       ],
       birthDateMonth: [
-        '5',
+        '1',
         Validators.compose([
           Validators.required,
           this.birthdayMonthValidator(),
