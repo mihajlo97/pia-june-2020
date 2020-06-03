@@ -1,0 +1,62 @@
+<h5>Your hothouses</h5>
+<div class="table-responsive">
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Name</th>
+        <th scope="col">Location</th>
+        <th scope="col">Seedlings</th>
+        <th scope="col">Empty</th>
+        <th scope="col">Watering (L)</th>
+        <th scope="col">Temperature (°C)</th>
+        <th scope="col">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!--<tr *ngFor="let item of itemStream$ | async; let id = index">
+      <th scope="row">{{ id + 1 }}</th>
+      <td>{{ item?.email }}</td>
+      <td>{{ item?.username }}</td>
+      <td>{{ item?.role }}</td>
+      <td>
+        <button
+          type="button"
+          class="btn btn-outline-success mr-1"
+          (click)="
+            doAcceptOrRejectAccountRequest(item.username, item.role, true)
+          "
+        >
+          Accept
+        </button>
+        <button
+          type="button"
+          class="btn btn-outline-danger"
+          (click)="
+            doAcceptOrRejectAccountRequest(item.username, item.role, false)
+          "
+        >
+          Reject
+        </button>
+      </td>
+    </tr>-->
+      <tr>
+        <th scope="row" class="align-middle">1</th>
+        <td class="align-middle">Jele</td>
+        <td class="align-middle">Kikinda, Serbia</td>
+        <td class="align-middle">128</td>
+        <td class="align-middle">64</td>
+        <td class="align-middle">240</td>
+        <td class="align-middle">26</td>
+        <td class="align-middle">
+          <button type="button" class="btn btn-outline-primary mr-1">
+            View
+          </button>
+          <button type="button" class="btn btn-outline-primary mr-1">
+            Warehouse
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

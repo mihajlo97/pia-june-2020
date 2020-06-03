@@ -1,0 +1,37 @@
+<ul class="nav nav-tabs">
+  <li class="nav-item">
+    <a
+      class="nav-link"
+      [class.active]="activeTabSelect[0]"
+      (click)="navigateTab(tabs[0])"
+      >Home</a
+    >
+  </li>
+  <li class="nav-item">
+    <a
+      class="nav-link"
+      [class.active]="activeTabSelect[1]"
+      (click)="navigateTab(tabs[1])"
+      >Orders</a
+    >
+  </li>
+  <li class="nav-item">
+    <a
+      class="nav-link"
+      [class.active]="activeTabSelect[2]"
+      (click)="navigateTab(tabs[2])"
+      >Store</a
+    >
+  </li>
+  <li class="nav-item">
+    <a
+      class="nav-link"
+      [class.active]="activeTabSelect[3]"
+      (click)="navigateTab(tabs[3])"
+      >Create</a
+    >
+  </li>
+</ul>
+<div class="container pt-4">
+  <router-outlet></router-outlet>
+</div>

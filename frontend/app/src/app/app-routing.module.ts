@@ -23,6 +23,11 @@ import { AdminDashboardComponent } from './components/users/admin/admin-dashboar
 import { AdminCreateWorkerComponent } from './components/users/admin/admin-create/admin-create-worker/admin-create-worker.component';
 import { AdminCreateCompanyComponent } from './components/users/admin/admin-create/admin-create-company/admin-create-company.component';
 import { AdminCreateAdminComponent } from './components/users/admin/admin-create/admin-create-admin/admin-create-admin.component';
+import { WorkerDashboardComponent } from './components/users/worker/worker-dashboard/worker-dashboard.component';
+import { WorkerHomeComponent } from './components/users/worker/worker-home/worker-home.component';
+import { WorkerOrdersComponent } from './components/users/worker/worker-orders/worker-orders.component';
+import { WorkerStoreComponent } from './components/users/worker/worker-store/worker-store.component';
+import { WorkerCreateComponent } from './components/users/worker/worker-create/worker-create.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -45,7 +50,38 @@ const routes: Routes = [
       {
         path: '',
         canActivateChild: [WorkerAuthGuard],
-        children: [],
+        children: [
+          {
+            path: 'change-password',
+            component: ChangePasswordComponent,
+          },
+          {
+            path: 'change-password-success',
+            component: ChangePasswordSuccessComponent,
+          },
+          {
+            path: 'dashboard',
+            component: WorkerDashboardComponent,
+            children: [
+              {
+                path: 'home',
+                component: WorkerHomeComponent,
+              },
+              {
+                path: 'orders',
+                component: WorkerOrdersComponent,
+              },
+              {
+                path: 'store',
+                component: WorkerStoreComponent,
+              },
+              {
+                path: 'create',
+                component: WorkerCreateComponent,
+              },
+            ],
+          },
+        ],
       },
     ],
   },

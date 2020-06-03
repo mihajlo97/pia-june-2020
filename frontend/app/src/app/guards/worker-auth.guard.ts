@@ -10,6 +10,7 @@ import {
 import { Observable } from 'rxjs';
 import { AuthenticationService } from '../services/authentication.service';
 import { Roles } from '../models/users';
+import { UserLoggedInResponse } from '../models/authetication';
 
 @Injectable({
   providedIn: 'root',
@@ -24,11 +25,16 @@ export class WorkerAuthGuard implements CanActivate, CanActivateChild {
     | Promise<boolean | UrlTree>
     | boolean
     | UrlTree {
-    const role = this.auth.getUserRole();
-    if (role !== Roles.WORKER) {
-      this.router.navigate(['forbidden']);
-    }
-    return role === Roles.WORKER;
+    let response: UserLoggedInResponse;
+
+    const checkRole = async () => {
+      response = await this.auth.checkUserLoggedIn();
+      if (response.role !== Roles.WORKER) {
+        this.router.navigate(['forbidden']);
+      }
+      return response.role === Roles.WORKER;
+    };
+    return checkRole();
   }
   canActivateChild(
     next: ActivatedRouteSnapshot,

@@ -3,7 +3,7 @@ import {
   PendingRegistrationItem,
   RegistrationItemActionResponse,
 } from 'src/app/models/admin';
-import { Observable, Subscription, BehaviorSubject } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { AdminService } from 'src/app/services/users/admin.service';
 import { Roles } from 'src/app/models/users';
 import { HttpErrorResponse } from '@angular/common/http';

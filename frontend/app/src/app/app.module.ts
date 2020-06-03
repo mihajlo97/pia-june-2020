@@ -39,6 +39,11 @@ import { AdminDashboardComponent } from './components/users/admin/admin-dashboar
 import { AdminCreateWorkerComponent } from './components/users/admin/admin-create/admin-create-worker/admin-create-worker.component';
 import { AdminCreateCompanyComponent } from './components/users/admin/admin-create/admin-create-company/admin-create-company.component';
 import { AdminCreateAdminComponent } from './components/users/admin/admin-create/admin-create-admin/admin-create-admin.component';
+import { WorkerDashboardComponent } from './components/users/worker/worker-dashboard/worker-dashboard.component';
+import { WorkerHomeComponent } from './components/users/worker/worker-home/worker-home.component';
+import { WorkerOrdersComponent } from './components/users/worker/worker-orders/worker-orders.component';
+import { WorkerStoreComponent } from './components/users/worker/worker-store/worker-store.component';
+import { WorkerCreateComponent } from './components/users/worker/worker-create/worker-create.component';
 
 @NgModule({
   declarations: [
@@ -64,6 +69,11 @@ import { AdminCreateAdminComponent } from './components/users/admin/admin-create
     AdminCreateWorkerComponent,
     AdminCreateCompanyComponent,
     AdminCreateAdminComponent,
+    WorkerDashboardComponent,
+    WorkerHomeComponent,
+    WorkerOrdersComponent,
+    WorkerStoreComponent,
+    WorkerCreateComponent,
   ],
   imports: [
     BrowserModule,
