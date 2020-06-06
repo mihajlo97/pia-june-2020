@@ -44,6 +44,8 @@ import { WorkerHomeComponent } from './components/users/worker/worker-home/worke
 import { WorkerOrdersComponent } from './components/users/worker/worker-orders/worker-orders.component';
 import { WorkerStoreComponent } from './components/users/worker/worker-store/worker-store.component';
 import { WorkerCreateComponent } from './components/users/worker/worker-create/worker-create.component';
+import { AdminService } from './services/users/admin.service';
+import { WorkerService } from './services/users/worker.service';
 
 @NgModule({
   declarations: [
@@ -93,6 +95,8 @@ import { WorkerCreateComponent } from './components/users/worker/worker-create/w
     },
     RegistrationService,
     AuthenticationService,
+    AdminService,
+    WorkerService,
   ],
   bootstrap: [AppComponent],
 })

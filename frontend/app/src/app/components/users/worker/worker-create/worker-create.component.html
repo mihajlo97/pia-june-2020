@@ -1,1 +1,124 @@
-<p>worker-create works!</p>
+<h5>Create new hothouse</h5>
+<div class="card mt-3">
+  <div class="card-body">
+    <form [formGroup]="createForm" (ngSubmit)="createHothouse()">
+      <div class="form-group">
+        <label for="name">Name:</label>
+        <input
+          type="text"
+          id="name"
+          class="form-control"
+          formControlName="name"
+          [class.is-invalid]="
+            createForm.get('name').dirty && createForm.get('name').invalid
+          "
+          [class.is-valid]="createForm.get('name').valid"
+          required
+        />
+      </div>
+      <div class="form-group">
+        <label for="location">Location:</label>
+        <input
+          type="text"
+          id="location"
+          class="form-control"
+          formControlName="location"
+          [class.is-invalid]="
+            createForm.get('location').dirty &&
+            createForm.get('location').invalid
+          "
+          [class.is-valid]="createForm.get('location').valid"
+          required
+        />
+      </div>
+      <div class="form-group">
+        <label for="dimension-width">Width (m):</label>
+        <input
+          type="number"
+          id="dimension-width"
+          class="form-control"
+          style="width: 10rem;"
+          formControlName="dimensionWidth"
+          [class.is-invalid]="
+            createForm.get('dimensionWidth').dirty &&
+            createForm.get('dimensionWidth').invalid
+          "
+          [class.is-valid]="createForm.get('dimensionWidth').valid"
+          min="1"
+          required
+        />
+      </div>
+      <div class="form-group">
+        <label for="dimension-height">Height (m):</label>
+        <input
+          type="number"
+          id="dimension-height"
+          class="form-control"
+          style="width: 10rem;"
+          formControlName="dimensionHeight"
+          [class.is-invalid]="
+            createForm.get('dimensionHeight').dirty &&
+            createForm.get('dimensionHeight').invalid
+          "
+          [class.is-valid]="createForm.get('dimensionHeight').valid"
+          min="1"
+          required
+        />
+      </div>
+      <div class="form-group" *ngIf="didCreateHothouseFail">
+        <small class="text-danger"
+          >Server encountered an error while attempting to create the hothouse.
+          Please try again.</small
+        >
+      </div>
+      <div class="form-group" style="text-align: center;">
+        <button
+          type="submit"
+          class="btn btn-outline-primary"
+          style="width: 7rem;"
+          [disabled]="createForm.pristine || createForm.invalid"
+        >
+          Create
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div
+  class="modal fade"
+  id="successModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="successModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="successModalLabel">Success!</h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        Hothouse {{ createForm.value.name }} created successfully!
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-outline-primary"
+          style="width: 4rem;"
+          (click)="closeModal()"
+        >
+          Ok
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

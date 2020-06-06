@@ -12,6 +12,7 @@ const dbTest = require("./test/populate-db");
 const registration = require("./api/registration");
 const authetication = require("./api/authentication");
 const admin = require("./api/admin");
+const worker = require("./api/worker");
 
 //[CONFIG]
 const PORT = process.env.PORT || 3000;
@@ -75,6 +76,7 @@ exports.db = db;
 
 //[REGISTRATION]
 const registrationPath = "/api/registration";
+
 app.post(
   `${registrationPath}/worker`,
   registration.processWorkerRegistrationRequest
@@ -87,6 +89,7 @@ app.post(
 
 //[USER-AUTHETICATION]
 const authenticationPath = "/api/authentication";
+
 app.post(`${authenticationPath}/login`, authetication.loginUser);
 
 app.get(`${authenticationPath}/login`, authetication.userLoggedIn);
@@ -105,6 +108,7 @@ app.post(
 
 //[USER-ADMIN-MODULE]
 const adminPath = "/api/admin";
+
 app.get(
   `${adminPath}/pending`,
   admin.checkAdminPrivilege,
@@ -146,6 +150,15 @@ app.post(
 app.post(`${adminPath}/user/edit`, admin.checkAdminPrivilege, admin.editUser);
 
 app.post(`${adminPath}/user`, admin.checkAdminPrivilege, admin.createNewUser);
+
+//[USER-WORKER-MODULE]
+const workerPath = "/api/worker";
+
+app.post(
+  `${workerPath}/hothouse/create`,
+  worker.checkWorkerPermission,
+  worker.createHothouse
+);
 
 //<====[TESTING]====>
 app.get("/test/add-admin", dbTest.addMasterAdmin);

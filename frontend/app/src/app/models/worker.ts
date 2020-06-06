@@ -4,3 +4,15 @@ export enum Tabs {
   STORE = 'store',
   CREATE = 'create',
 }
+
+export interface CreateHothouseRequest {
+  username: string;
+  name: string;
+  location: string;
+  width: number;
+  height: number;
+}
+
+export interface CreateHothouseResponse {
+  success: boolean;
+}
