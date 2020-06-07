@@ -16,3 +16,13 @@ export interface CreateHothouseRequest {
 export interface CreateHothouseResponse {
   success: boolean;
 }
+
+export interface HothouseItem {
+  _id: string;
+  name: string;
+  location: string;
+  capacity: number;
+  occupiedSpots: number;
+  waterAmount: number;
+  temperature: number;
+}

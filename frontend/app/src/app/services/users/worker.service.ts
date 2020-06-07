@@ -3,7 +3,9 @@ import { HttpHeaders, HttpClient } from '@angular/common/http';
 import {
   CreateHothouseRequest,
   CreateHothouseResponse,
+  HothouseItem,
 } from 'src/app/models/worker';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -28,5 +30,12 @@ export class WorkerService {
         this._httpOptions
       )
       .toPromise();
+  }
+
+  getHothouses(): Observable<HothouseItem[]> {
+    return this.http.get<HothouseItem[]>(
+      `${this._workerAPI}/hothouse`,
+      this._httpOptions
+    );
   }
 }

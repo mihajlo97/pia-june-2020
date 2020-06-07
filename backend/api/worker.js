@@ -26,7 +26,7 @@ exports.checkWorkerPermission = async (req, res, next) => {
       next();
     } else {
       console.info(
-        "[MIDWARE][RES]: @worker: checkWorkerPermission\nMidware-Result: 403.\nResult-Origin: Request params.\nResponse:\n",
+        "[MIDWARE][RES]: @worker: checkWorkerPermission\nMidware-Result: 403.\nResult-Origin: Username lookup.\nResponse:\n",
         response
       );
       return res.status(403).json(response);
@@ -103,4 +103,58 @@ exports.createHothouse = async (req, res) => {
       );
       return res.status(500).json(response);
     });
+};
+
+//GET @api/worker/hothouse
+exports.getHothouses = async (req, res) => {
+  //setup response stream as array of JSON objects
+  res.set("Content-Type", "application/json");
+  res.write("[");
+
+  let hothouseItem = {
+    _id: "",
+    name: "",
+    location: "",
+    capacity: 0,
+    occupiedSpots: 0,
+    waterAmount: 0,
+    temperature: 0,
+  };
+
+  try {
+    let cursor = Hothouse.find({
+      owner: req.session.username,
+    }).cursor();
+    let doc = await cursor.next();
+    let docNext;
+
+    while (doc != null) {
+      docNext = await cursor.next();
+      if (doc) {
+        hothouseItem._id = doc._id;
+        hothouseItem.name = doc.name;
+        hothouseItem.location = doc.location;
+        hothouseItem.capacity = doc.capacity;
+        hothouseItem.occupiedSpots = doc.occupiedSpots;
+        hothouseItem.waterAmount = doc.waterAmount;
+        hothouseItem.temperature = doc.temperature;
+        res.write(JSON.stringify(hothouseItem));
+      }
+      if (docNext) {
+        res.write(",");
+      }
+      doc = docNext;
+    }
+
+    console.info(
+      "[GET][RES]: @api/worker/hothouse\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse: Stream-Write-OK."
+    );
+    res.end("]");
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/worker/hothouse\nDatabase-Query-Exception: Query call failed.\nQuery: Retrieving hothouses.\nError-Log:\n",
+      err
+    );
+    res.status(500).end("{}]");
+  }
 };

@@ -160,5 +160,11 @@ app.post(
   worker.createHothouse
 );
 
+app.get(
+  `${workerPath}/hothouse`,
+  worker.checkWorkerPermission,
+  worker.getHothouses
+);
+
 //<====[TESTING]====>
 app.get("/test/add-admin", dbTest.addMasterAdmin);

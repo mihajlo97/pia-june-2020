@@ -73,10 +73,10 @@
   </thead>
   <tbody>
     <tr *ngFor="let user of usersStream$ | async; let id = index">
-      <th scope="row">{{ id + 1 }}</th>
-      <td>{{ user?.username }}</td>
-      <td>{{ user?.role }}</td>
-      <td>
+      <th scope="row" class="align-middle">{{ id + 1 }}</th>
+      <td class="align-middle">{{ user?.username }}</td>
+      <td class="align-middle">{{ user?.role }}</td>
+      <td class="align-middle">
         <button
           type="button"
           class="btn btn-outline-info mr-1"
