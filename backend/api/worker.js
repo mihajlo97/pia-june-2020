@@ -8,6 +8,11 @@ const TEMPERATURE_DEFAULT = 18.0;
 //[DB-COLLECTIONS]
 const Hothouse = mongoose.model("Hothouses", worker.HothouseSchema);
 const HothouseSpot = mongoose.model("HothouseSpots", worker.HothouseSpotSchema);
+const Warehouse = mongoose.model("Warehouses", worker.WarehouseSchema);
+const WarehouseItem = mongoose.model(
+  "WarehouseItems",
+  worker.WarehouseItemSchema
+);
 const Users = mongoose.model("Users", users.UserSchema);
 
 //[MIDDLEWARE]
@@ -88,12 +93,30 @@ exports.createHothouse = async (req, res) => {
     .save()
     .then((doc) => {
       if (doc) {
-        response.success = true;
-        console.info(
-          "[POST][RES]: @api/worker/hothouse/create\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
-          response
-        );
-        return res.status(200).json(response);
+        let warehouse = new Warehouse();
+
+        warehouse.hothouse = doc._id;
+        warehouse.items = [];
+
+        warehouse
+          .save()
+          .then((doc) => {
+            if (doc) {
+              response.success = true;
+              console.info(
+                "[POST][RES]: @api/worker/hothouse/create\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
+                response
+              );
+              return res.status(200).json(response);
+            }
+          })
+          .catch((err) => {
+            console.error(
+              "[ERROR][DB]: @api/worker/hothouse/create\nDatabase-Query-Exception: Query call failed.\nQuery: Create warehouse.\nError-Log:\n",
+              err
+            );
+            return res.status(500).json(response);
+          });
       }
     })
     .catch((err) => {
@@ -156,5 +179,130 @@ exports.getHothouses = async (req, res) => {
       err
     );
     res.status(500).end("{}]");
+  }
+};
+
+//POST @@api/worker/hothouse/warehouse
+exports.getWarehouse = async (req, res) => {
+  let response = [];
+  //handle bad request
+  if (!req.body._id) {
+    console.info(
+      "[POST][RES]: @api/worker/hothouse/warehouse\nAPI-Call-Result: 400.\nResult-Origin: Request params.\nResponse:\n",
+      response
+    );
+    return res.status(400).json(response);
+  }
+
+  try {
+    const warehouse = await Warehouse.findOne({
+      hothouse: req.body._id,
+    }).exec();
+    response = warehouse.items;
+    console.info(
+      "[POST][RES]: @api/worker/hothouse/warehouse\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
+      response
+    );
+    return res.status(200).json(response);
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/worker/hothouse/warehouse\nDatabase-Query-Exception: Query call failed.\nQuery: Retrieving warehouse.\nError-Log:\n",
+      err
+    );
+    res.status(500).json(response);
+  }
+};
+
+//POST @@api/worker/hothouse/warehouse/filter
+exports.filterWarehouse = async (req, res) => {
+  let response = [];
+  //handle bad request
+  if (
+    !req.body._id ||
+    req.body.search === null ||
+    req.body.search === undefined ||
+    !req.body.category ||
+    !req.body.sort ||
+    !req.body.order
+  ) {
+    console.info(
+      "[POST][RES]: @api/worker/hothouse/warehouse/filter\nAPI-Call-Result: 400.\nResult-Origin: Request params.\nResponse:\n",
+      response
+    );
+    return res.status(400).json(response);
+  }
+
+  try {
+    const warehouse = await Warehouse.findOne({
+      hothouse: req.body._id,
+    }).exec();
+
+    console.log("[DEBUG]: Body: ", req.body);
+
+    response = warehouse.items
+      .filter((item) => {
+        if (req.body.search === "") {
+          return true;
+        }
+
+        switch (req.body.category) {
+          case "name": {
+            return item.name.toLowerCase().includes(req.body.search);
+          }
+          case "manufacturer": {
+            return item.manufacturer.toLowerCase().includes(req.body.search);
+          }
+          case "quantity": {
+            return item.quantity >= parseInt(req.body.search);
+          }
+          default: {
+            return false;
+          }
+        }
+      })
+      .sort((a, b) => {
+        switch (req.body.sort) {
+          case "name": {
+            if (req.body.order === "desc") {
+              return a.name.toLowerCase() > b.name.toLowerCase() ? -1 : 1;
+            } else {
+              return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1;
+            }
+          }
+          case "manufacturer": {
+            if (req.body.order === "desc") {
+              return a.manufacturer.toLowerCase() > b.manufacturer.toLowerCase()
+                ? -1
+                : 1;
+            } else {
+              return a.manufacturer.toLowerCase() > b.manufacturer.toLowerCase()
+                ? 1
+                : -1;
+            }
+          }
+          case "quantity": {
+            if (req.body.order === "desc") {
+              return a.quantity > b.quantity ? -1 : 1;
+            } else {
+              return a.quantity > b.quantity ? 1 : -1;
+            }
+          }
+          default: {
+            return -1;
+          }
+        }
+      });
+
+    console.info(
+      "[POST][RES]: @api/worker/hothouse/warehouse/filter\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
+      response
+    );
+    return res.status(200).json(response);
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/worker/hothouse/warehouse/filter\nDatabase-Query-Exception: Query call failed.\nQuery: Retrieving warehouse.\nError-Log:\n",
+      err
+    );
+    res.status(500).json(response);
   }
 };

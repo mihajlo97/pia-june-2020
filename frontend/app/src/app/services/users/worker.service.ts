@@ -4,6 +4,9 @@ import {
   CreateHothouseRequest,
   CreateHothouseResponse,
   HothouseItem,
+  WarehouseItem,
+  GetWarehouseRequest,
+  FilterWarehouseRequest,
 } from 'src/app/models/worker';
 import { Observable } from 'rxjs';
 
@@ -35,6 +38,22 @@ export class WorkerService {
   getHothouses(): Observable<HothouseItem[]> {
     return this.http.get<HothouseItem[]>(
       `${this._workerAPI}/hothouse`,
+      this._httpOptions
+    );
+  }
+
+  getWarehouse(req: GetWarehouseRequest): Observable<WarehouseItem[]> {
+    return this.http.post<WarehouseItem[]>(
+      `${this._workerAPI}/hothouse/warehouse`,
+      req,
+      this._httpOptions
+    );
+  }
+
+  filterWarehouse(req: FilterWarehouseRequest): Observable<WarehouseItem[]> {
+    return this.http.post<WarehouseItem[]>(
+      `${this._workerAPI}/hothouse/warehouse/filter`,
+      req,
       this._httpOptions
     );
   }

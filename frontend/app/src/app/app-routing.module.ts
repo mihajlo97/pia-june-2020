@@ -28,6 +28,8 @@ import { WorkerHomeComponent } from './components/users/worker/worker-home/worke
 import { WorkerOrdersComponent } from './components/users/worker/worker-orders/worker-orders.component';
 import { WorkerStoreComponent } from './components/users/worker/worker-store/worker-store.component';
 import { WorkerCreateComponent } from './components/users/worker/worker-create/worker-create.component';
+import { WorkerHothouseComponent } from './components/users/worker/worker-hothouse/worker-hothouse.component';
+import { WorkerWarehouseComponent } from './components/users/worker/worker-warehouse/worker-warehouse.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -78,6 +80,14 @@ const routes: Routes = [
               {
                 path: 'create',
                 component: WorkerCreateComponent,
+              },
+              {
+                path: 'hothouse/:id',
+                component: WorkerHothouseComponent,
+              },
+              {
+                path: 'warehouse/:id',
+                component: WorkerWarehouseComponent,
               },
             ],
           },

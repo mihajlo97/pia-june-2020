@@ -25,11 +25,11 @@ export class WorkerHomeComponent implements OnInit {
   ngOnInit(): void {}
 
   viewHothouse(id: number): void {
-    console.log('[DEBUG]: HothouseID: ', id);
+    this.router.navigate([`../hothouse/${id}`], { relativeTo: this.route });
   }
 
   viewWarehouse(id: number): void {
-    console.log('[DEBUG]: HothouseID: ', id);
+    this.router.navigate([`../warehouse/${id}`], { relativeTo: this.route });
   }
 
   ngOnDestroy(): void {

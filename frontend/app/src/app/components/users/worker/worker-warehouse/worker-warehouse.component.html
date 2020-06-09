@@ -1,0 +1,72 @@
+<h5>Warehouse</h5>
+<form [formGroup]="queryForm" (ngSubmit)="search()">
+  <div class="form-inline my-3 align-middle">
+    <label for="search">Search: </label>
+    <input
+      type="text"
+      id="search"
+      formControlName="search"
+      class="form-control form-control-sm mx-2"
+    />
+    <label for="category">Category: </label>
+    <select
+      id="category"
+      formControlName="category"
+      class="form-control form-control-sm ml-2"
+    >
+      <option *ngFor="let category of categories" [value]="category">{{
+        category | titlecase
+      }}</option>
+    </select>
+  </div>
+  <div class="form-inline my-3 align-middle">
+    <label for="sort-category">Sort by: </label>
+    <select
+      id="sort-category"
+      formControlName="sortCategory"
+      class="form-control form-control-sm ml-2"
+    >
+      <option *ngFor="let category of categories" [value]="category">{{
+        category | titlecase
+      }}</option>
+    </select>
+    <select
+      id="sort-order"
+      formControlName="sortOrder"
+      class="form-control form-control-sm mx-2"
+    >
+      <option [value]="order[0]">Ascending</option>
+      <option [value]="order[1]">Descending</option>
+    </select>
+    <button
+      type="submit"
+      class="btn btn-outline-primary btn-sm"
+      style="width: 7rem;"
+      (click)="search()"
+    >
+      Search
+    </button>
+  </div>
+</form>
+<div class="table-responsive">
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th scope="col" class="align-middle">#</th>
+        <th scope="col" class="align-middle">Name</th>
+        <th scope="col" class="align-middle">Item type</th>
+        <th scope="col" class="align-middle">Manufacturer</th>
+        <th scope="col" class="align-middle">Quantity</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let item of itemStream$ | async; let id = index">
+        <th scope="row" class="align-middle">{{ id + 1 }}</th>
+        <td class="align-middle">{{ item?.name }}</td>
+        <td class="align-middle">{{ item?.type }}</td>
+        <td class="align-middle">{{ item?.manufacturer }}</td>
+        <td class="align-middle">{{ item?.quantity }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

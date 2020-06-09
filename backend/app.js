@@ -166,5 +166,17 @@ app.get(
   worker.getHothouses
 );
 
+app.post(
+  `${workerPath}/hothouse/warehouse`,
+  worker.checkWorkerPermission,
+  worker.getWarehouse
+);
+
+app.post(
+  `${workerPath}/hothouse/warehouse/filter`,
+  worker.checkWorkerPermission,
+  worker.filterWarehouse
+);
+
 //<====[TESTING]====>
 app.get("/test/add-admin", dbTest.addMasterAdmin);

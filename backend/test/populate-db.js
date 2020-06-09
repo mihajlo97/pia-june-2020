@@ -1,9 +1,15 @@
 const mongoose = require("mongoose");
 const { UserSchema, AdminInfoSchema } = require("../models/users");
 const bcrypt = require("bcrypt");
+const worker = require("../models/worker");
 
 const Users = mongoose.model("User", UserSchema);
 const AdminInfo = mongoose.model("AdminInfo", AdminInfoSchema);
+const Warehouse = mongoose.model("Warehouses", worker.WarehouseSchema);
+const WarehouseItem = mongoose.model(
+  "WarehouseItems",
+  worker.WarehouseItemSchema
+);
 
 exports.addMasterAdmin = async (req, res) => {
   await AdminInfo.create({
