@@ -8,6 +8,7 @@ const TEMPERATURE_DEFAULT = 18.0;
 //[DB-COLLECTIONS]
 const Hothouse = mongoose.model("Hothouses", worker.HothouseSchema);
 const HothouseSpot = mongoose.model("HothouseSpots", worker.HothouseSpotSchema);
+const Seedling = mongoose.model("Seedlings", worker.SeedlingSchema);
 const Warehouse = mongoose.model("Warehouses", worker.WarehouseSchema);
 const WarehouseItem = mongoose.model(
   "WarehouseItems",

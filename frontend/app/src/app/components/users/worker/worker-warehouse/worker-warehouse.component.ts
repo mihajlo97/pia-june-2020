@@ -38,7 +38,7 @@ export class WorkerWarehouseComponent implements OnInit {
       search: [''],
       category: [this.categories[0]],
       sortCategory: [this.categories[0]],
-      sortOrder: ['asc'],
+      sortOrder: [this.order[0]],
     });
   }
 

@@ -1,1 +1,267 @@
-<p>worker-hothouse works! Id: {{ id }}</p>
+<h5>Hothouse</h5>
+<div class="card">
+  <!--HOTHOUSE-ENVIRONMENT-CONTROL-MENU-->
+  <div class="card-header">
+    <form>
+      <div class="form-inline align-middle">
+        <label for="water">Water (L): </label>
+        <input
+          type="number"
+          id="water"
+          min="0"
+          class="form-control mx-3 rounded"
+          style="width: 5rem;"
+          value="200"
+          onkeydown="return false"
+        />
+        <label for="temperature">Temperature (°C): </label>
+        <input
+          type="number"
+          id="water"
+          min="0"
+          class="form-control mx-3 rounded"
+          style="width: 5rem;"
+          value="18"
+          onkeydown="return false"
+        />
+      </div>
+    </form>
+  </div>
+  <!--HOTHOUSE-SPOTS-->
+  <div class="card-body px-4">
+    <div class="row row-cols-1 row-cols-md-4">
+      <div class="col mb-3" *ngFor="let item of grid">
+        <!--SINGLE-SPOT-->
+        <div
+          class="card mb-3"
+          style="min-height: 15rem; min-width: 15rem;"
+          (mouseenter)="item.display = true"
+          (mouseleave)="item.display = false"
+          [class.border-dark]="item.occupied && !item.done"
+          [class.border-success]="item.done"
+        >
+          <div class="card-header" [class.header-hover]="item.display">
+            Row: {{ item.row }}, Col: {{ item.col }}
+          </div>
+          <div class="card-body spot rounded" [class.item-hover]="item.display">
+            <div *ngIf="item.display">
+              <div *ngIf="item.occupied">
+                <strong>Name:</strong>
+                <br />
+                <span>The Wildest Test Which The World Has Ever Seen</span>
+                <br />
+                <strong>Manufacturer:</strong>
+                <br />
+                <span>Testers & Designers Incorporated</span>
+                <br />
+                <div *ngIf="!item.done" class="progress my-1">
+                  <div
+                    class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                    role="progressbar"
+                    style="width: 25%;"
+                    aria-valuenow="25"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                  >
+                    25%
+                  </div>
+                </div>
+                <div *ngIf="item.done" class="progress my-1">
+                  <div
+                    class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                    role="progressbar"
+                    style="width: 100%;"
+                    aria-valuenow="100"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                  >
+                    100%
+                  </div>
+                </div>
+                <div class="text-center mt-3 mb-1">
+                  <button
+                    type="button"
+                    class="btn btn-outline-success mr-2"
+                    style="width: 5rem;"
+                    [disabled]="!item.done"
+                  >
+                    Pick
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    style="width: 5rem;"
+                    data-toggle="modal"
+                    data-target="#apply-modal"
+                  >
+                    Apply
+                  </button>
+                </div>
+              </div>
+              <div
+                *ngIf="!item.occupied"
+                class="d-flex flex-column justify-content-center align-items-center"
+                style="height: 8rem;"
+              >
+                <div class="text-center">
+                  <div *ngIf="!item.ready">
+                    <span>Preparing spot...</span>
+                    <br />
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-outline-primary mt-2"
+                    style="width: 5rem;"
+                    data-toggle="modal"
+                    data-target="#plant-modal"
+                    [disabled]="!item.ready"
+                  >
+                    Plant
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--APPLY-MODAL-->
+<div
+  class="modal fade"
+  id="apply-modal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="apply-modal-label"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Fertilizers</h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <table class="table table-hover">
+          <thead>
+            <th>
+              Name
+            </th>
+            <th>
+              Growth factor
+            </th>
+            <th>
+              Quantity
+            </th>
+            <th>
+              Action
+            </th>
+          </thead>
+          <tbody>
+            <tr *ngFor="let fert of fertilizers">
+              <td class="align-middle">
+                {{ fert.fertilizer }}
+              </td>
+              <td class="align-middle">{{ fert.factor }} days</td>
+              <td class="align-middle">
+                {{ fert.quantity }}
+              </td>
+              <td class="align-middle">
+                <button
+                  type="button"
+                  class="btn btn-outline-primary"
+                  data-dismiss="modal"
+                >
+                  Apply
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--PLANT-MODAL-->
+<div
+  class="modal fade"
+  id="plant-modal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="plant-modal-label"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="plant-modal-label">Seedlings</h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <table class="table table-hover">
+          <thead>
+            <th>
+              Name
+            </th>
+            <th>
+              Growth time
+            </th>
+            <th>
+              Quantity
+            </th>
+            <th>
+              Action
+            </th>
+          </thead>
+          <tbody>
+            <tr *ngFor="let seed of seedlings">
+              <td class="align-middle">
+                {{ seed.seedling }}
+              </td>
+              <td class="align-middle">{{ seed.days }} days</td>
+              <td class="align-middle">
+                {{ seed.quantity }}
+              </td>
+              <td class="align-middle">
+                <button
+                  type="button"
+                  class="btn btn-outline-primary"
+                  data-dismiss="modal"
+                >
+                  Plant
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
