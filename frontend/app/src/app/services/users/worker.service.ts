@@ -7,6 +7,8 @@ import {
   WarehouseItem,
   GetWarehouseRequest,
   FilterWarehouseRequest,
+  HothouseDashboardDataRequest,
+  HothouseDashboardDataResponse,
 } from 'src/app/models/worker';
 import { Observable } from 'rxjs';
 
@@ -56,5 +58,17 @@ export class WorkerService {
       req,
       this._httpOptions
     );
+  }
+
+  getHothouseDashboardData(
+    req: HothouseDashboardDataRequest
+  ): Promise<HothouseDashboardDataResponse> {
+    return this.http
+      .post<HothouseDashboardDataResponse>(
+        `${this._workerAPI}/hothouse/view`,
+        req,
+        this._httpOptions
+      )
+      .toPromise();
   }
 }

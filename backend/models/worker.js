@@ -9,9 +9,17 @@ const WAREHOUSE_ITEMS_COLLECTION = "WarehouseItems";
 
 exports.HothouseSpotSchema = new Schema(
   {
-    position: {
+    row: {
       type: Number,
+      min: 1,
       required: true,
+      immutable: true,
+    },
+    col: {
+      type: Number,
+      min: 1,
+      required: true,
+      immutable: true,
     },
     occupied: {
       type: Boolean,
@@ -19,6 +27,7 @@ exports.HothouseSpotSchema = new Schema(
     },
     lastOccupiedOn: {
       type: Date,
+      required: false,
     },
   },
   { collection: HOTHOUSE_SPOTS_COLLECTION }
@@ -44,21 +53,18 @@ exports.HothouseSchema = new Schema(
       required: true,
       default: 1,
       min: 1,
-      immutable: true,
     },
     height: {
       type: Number,
       required: true,
       default: 1,
       min: 1,
-      immutable: true,
     },
     capacity: {
       type: Number,
       required: true,
       default: 1,
       min: 1,
-      immutable: true,
     },
     occupiedSpots: {
       type: Number,
@@ -106,19 +112,27 @@ exports.SeedlingSchema = new Schema(
       required: true,
       path: HOTHOUSES_COLLECTION,
     },
-    position: {
+    row: {
       type: Number,
+      min: 1,
+      required: true,
+    },
+    col: {
+      type: Number,
+      min: 1,
       required: true,
     },
     plantedOn: {
       type: Date,
       required: true,
+      immutable: true,
     },
     daysToGrow: {
       type: Number,
       required: true,
       min: 1,
       default: 1,
+      immutable: true,
     },
     done: {
       type: Boolean,
@@ -148,15 +162,18 @@ exports.WarehouseItemSchema = new Schema(
     type: {
       type: String,
       required: true,
+      immutable: true,
       enum: ["seedling", "fertilizer"],
     },
     daysToGrow: {
       type: Number,
       required: false,
+      immutable: true,
     },
     accelerateGrowthBy: {
       type: Number,
       required: false,
+      immutable: true,
     },
     quantity: {
       type: Number,

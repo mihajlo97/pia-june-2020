@@ -82,9 +82,14 @@ exports.createHothouse = async (req, res) => {
   hothouse.temperature = TEMPERATURE_DEFAULT;
   hothouse.conditionsLastUpdatedOn = new Date();
 
-  for (let i = 1; i <= capacity; i++) {
+  let rowCounter = 0;
+  for (let i = 0; i < capacity; i++) {
+    if (i % req.body.width === 0) {
+      rowCounter++;
+    }
     hothouse.spots.push({
-      position: i,
+      row: rowCounter,
+      col: (i % req.body.width) + 1,
       occupied: false,
       lastOccupiedOn: null,
     });
