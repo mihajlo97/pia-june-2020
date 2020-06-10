@@ -65,7 +65,7 @@ export class WorkerService {
   ): Promise<HothouseDashboardDataResponse> {
     return this.http
       .post<HothouseDashboardDataResponse>(
-        `${this._workerAPI}/hothouse/view`,
+        `${this._workerAPI}/hothouse/dashboard`,
         req,
         this._httpOptions
       )

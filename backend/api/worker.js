@@ -219,7 +219,7 @@ exports.getWarehouse = async (req, res) => {
   }
 };
 
-//POST @@api/worker/hothouse/warehouse/filter
+//POST @api/worker/hothouse/warehouse/filter
 exports.filterWarehouse = async (req, res) => {
   let response = [];
   //handle bad request
@@ -242,8 +242,6 @@ exports.filterWarehouse = async (req, res) => {
     const warehouse = await Warehouse.findOne({
       hothouse: req.body._id,
     }).exec();
-
-    console.log("[DEBUG]: Body: ", req.body);
 
     response = warehouse.items
       .filter((item) => {
@@ -307,6 +305,61 @@ exports.filterWarehouse = async (req, res) => {
   } catch (err) {
     console.error(
       "[ERROR][DB]: @api/worker/hothouse/warehouse/filter\nDatabase-Query-Exception: Query call failed.\nQuery: Retrieving warehouse.\nError-Log:\n",
+      err
+    );
+    res.status(500).json(response);
+  }
+};
+
+//POST @api/worker/hothouse/dashboard
+exports.getHothouseDashboardData = async (req, res) => {
+  let response = {};
+  //handle bad request
+  if (!req.body._id) {
+    console.info(
+      "[POST][RES]: @api/worker/hothouse/dashboard\nAPI-Call-Result: 400.\nResult-Origin: Request params.\nResponse:\n",
+      response
+    );
+    return res.status(400).json(response);
+  }
+
+  try {
+    //fetch data from database
+    const hothouse = await Hothouse.findById(req.body._id).exec();
+    if (!hothouse) {
+      throw new Error("Item-Not-Found-Exception: Hothouse.");
+    }
+    const warehouse = await Warehouse.findOne({
+      hothouse: req.body._id,
+    }).exec();
+    if (!warehouse) {
+      throw new Error("Item-Not-Found-Exception: Warehouse.");
+    }
+    const seedlings = await Seedling.find({
+      hothouse: req.body._id,
+      picked: false,
+    }).exec();
+
+    //structure response
+    response.hothouseControl = {
+      capacity: hothouse.capacity,
+      occupiedSpots: hothouse.occupiedSpots,
+      waterAmount: hothouse.waterAmount,
+      temperature: hothouse.temperature,
+      conditionsLastUpdatedOn: hothouse.conditionsLastUpdatedOn,
+    };
+    response.hothouseSpots = hothouse.spots;
+    response.warehouseItems = warehouse.items;
+    response.seedlings = seedlings;
+
+    console.info(
+      "[POST][RES]: @api/worker/hothouse/dashboard\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
+      response
+    );
+    return res.status(200).json(response);
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/worker/hothouse/dashboard\nDatabase-Query-Exception: Query call failed.\nQuery: Retrieving dashboard data.\nError-Log:\n",
       err
     );
     res.status(500).json(response);

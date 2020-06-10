@@ -178,5 +178,11 @@ app.post(
   worker.filterWarehouse
 );
 
+app.post(
+  `${workerPath}/hothouse/dashboard`,
+  worker.checkWorkerPermission,
+  worker.getHothouseDashboardData
+);
+
 //<====[TESTING]====>
 app.get("/test/add-admin", dbTest.addMasterAdmin);

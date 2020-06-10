@@ -75,6 +75,7 @@ export interface HothouseSpot {
 
 export interface Seedling {
   _id: string;
+  hothouse: string;
   name: string;
   manufacturer: string;
   row: number;
@@ -87,8 +88,6 @@ export interface Seedling {
 
 export interface HothouseControl {
   capacity: number;
-  width: number;
-  height: number;
   occupiedSpots: number;
   waterAmount: number;
   temperature: number;
