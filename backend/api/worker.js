@@ -365,3 +365,137 @@ exports.getHothouseDashboardData = async (req, res) => {
     res.status(500).json(response);
   }
 };
+
+//POST @api/worker/hothouse/seedling
+exports.createSeedling = async (req, res) => {
+  let response = { success: false };
+  //handle bad request
+  if (!req.body.seedling) {
+    console.info(
+      "[POST][RES]: @api/worker/hothouse/seedling\nAPI-Call-Result: 400.\nResult-Origin: Request params.\nResponse:\n",
+      response
+    );
+    return res.status(400).json(response);
+  }
+
+  try {
+    //check hothouse requirements for a new seedling
+    const hothouse = await Hothouse.findById(req.body.seedling.hothouse).exec();
+    if (!hothouse) {
+      throw new Error("Item-Not-Found-Exception: Hothouse.");
+    }
+    if (hothouse.occupiedSpots >= hothouse.capacity) {
+      throw new Error(
+        "Out-Of-Bounds-Value-Exception: Cannot exceed hothouse capacity."
+      );
+    }
+    if (
+      req.body.seedling.row > hothouse.height ||
+      req.body.seedling.col > hothouse.width ||
+      req.body.seedling.row < 1 ||
+      req.body.seedling.col < 1
+    ) {
+      throw new Error(
+        "Out-Of-Bounds-Value-Exception: Cannot exceed hothouse dimensions."
+      );
+    }
+
+    //create new seedling
+    const seedling = await Seedling.create({
+      name: req.body.seedling.name,
+      manufacturer: req.body.seedling.manufacturer,
+      hothouse: hothouse._id,
+      row: req.body.seedling.row,
+      col: req.body.seedling.col,
+      plantedOn: new Date(),
+      daysToGrow: req.body.seedling.daysToGrow,
+      done: false,
+      picked: false,
+    });
+    if (!seedling) {
+      throw new Error("Item-Not-Found-Exception: Seedling.");
+    }
+
+    //update hothouse spot
+    const index = hothouse.spots.findIndex(
+      (spot) =>
+        spot.row === req.body.seedling.row && spot.col === req.body.seedling.col
+    );
+    if (index < 0) {
+      throw new Error("Item-Not-Found-Exception: Hothouse.spots.");
+    }
+    hothouse.spots[index].occupied = true;
+    hothouse.spots[index].lastOccupiedOn = null;
+    const doc = await hothouse.save();
+    if (!doc) {
+      throw new Error("On-Save-Exception: Failed to save the document.");
+    }
+
+    response.success = true;
+    console.info(
+      "[POST][RES]: @api/worker/hothouse/seedling\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
+      response
+    );
+    return res.status(200).json(response);
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/worker/hothouse/seedling\nDatabase-Query-Exception: Query call failed.\nQuery: Creating seedling.\nError-Log:\n",
+      err
+    );
+    res.status(500).json(response);
+  }
+};
+
+//POST @api/worker/hothouse/warehouse/update
+exports.updateWarehouseItem = async (req, res) => {
+  let response = { success: false };
+
+  //handle bad request
+  if (!req.body._id || !req.body.hothouse || !req.body.quantity) {
+    console.info(
+      "[POST][RES]: @api/worker/hothouse/warehouse/update\nAPI-Call-Result: 400.\nResult-Origin: Request params.\nResponse:\n",
+      response
+    );
+    return res.status(400).json(response);
+  }
+
+  try {
+    //fetch warehouse
+    const warehouse = await Warehouse.findOne({
+      hothouse: req.body.hothouse,
+    }).exec();
+    if (!warehouse) {
+      throw new Error("Item-Not-Found-Exception: Warehouse.");
+    }
+
+    //update warehouse
+    const index = warehouse.items.findIndex((item) => item._id == req.body._id);
+    if (index < 0) {
+      throw new Error("Item-Not-Found-Exception: Warehouse.items");
+    }
+    if (req.body.quantity < 0) {
+      throw new Error(
+        "Out-Of-Bounds-Value-Exception: Quantity must be nonnegative."
+      );
+    }
+    warehouse.items[index].quantity = req.body.quantity;
+
+    const doc = await warehouse.save();
+    if (!doc) {
+      throw new Error("On-Save-Exception: Failed to save the document.");
+    }
+
+    response.success = true;
+    console.info(
+      "[POST][RES]: @api/worker/hothouse/warehouse/update\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
+      response
+    );
+    return res.status(200).json(response);
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/worker/warehouse/update\nDatabase-Query-Exception: Query call failed.\nQuery: Updating warehouse item.\nError-Log:\n",
+      err
+    );
+    res.status(500).json(response);
+  }
+};

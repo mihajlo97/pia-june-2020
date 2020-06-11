@@ -9,6 +9,11 @@ import {
   FilterWarehouseRequest,
   HothouseDashboardDataRequest,
   HothouseDashboardDataResponse,
+  CreateSeedlingRequest,
+  UpdateDashboardResponse,
+  UpdateHothouseRequest,
+  UpdateWarehouseItemRequest,
+  UpdateSeedlingRequest,
 } from 'src/app/models/worker';
 import { Observable } from 'rxjs';
 
@@ -66,6 +71,48 @@ export class WorkerService {
     return this.http
       .post<HothouseDashboardDataResponse>(
         `${this._workerAPI}/hothouse/dashboard`,
+        req,
+        this._httpOptions
+      )
+      .toPromise();
+  }
+
+  createSeedling(req: CreateSeedlingRequest): Promise<UpdateDashboardResponse> {
+    return this.http
+      .post<UpdateDashboardResponse>(
+        `${this._workerAPI}/hothouse/seedling`,
+        req,
+        this._httpOptions
+      )
+      .toPromise();
+  }
+
+  updateHothouse(req: UpdateHothouseRequest): Promise<UpdateDashboardResponse> {
+    return this.http
+      .post<UpdateDashboardResponse>(
+        `${this._workerAPI}/hothouse/update`,
+        req,
+        this._httpOptions
+      )
+      .toPromise();
+  }
+
+  updateWarehouseItem(
+    req: UpdateWarehouseItemRequest
+  ): Promise<UpdateDashboardResponse> {
+    return this.http
+      .post<UpdateDashboardResponse>(
+        `${this._workerAPI}/hothouse/warehouse/update`,
+        req,
+        this._httpOptions
+      )
+      .toPromise();
+  }
+
+  updateSeedling(req: UpdateSeedlingRequest): Promise<UpdateDashboardResponse> {
+    return this.http
+      .post<UpdateDashboardResponse>(
+        `${this._workerAPI}/hothouse/seedling/update`,
         req,
         this._httpOptions
       )

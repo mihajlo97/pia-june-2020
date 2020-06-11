@@ -184,5 +184,17 @@ app.post(
   worker.getHothouseDashboardData
 );
 
+app.post(
+  `${workerPath}/hothouse/seedling`,
+  worker.checkWorkerPermission,
+  worker.createSeedling
+);
+
+app.post(
+  `${workerPath}/hothouse/warehouse/update`,
+  worker.checkWorkerPermission,
+  worker.updateWarehouseItem
+);
+
 //<====[TESTING]====>
 app.get("/test/add-admin", dbTest.addMasterAdmin);

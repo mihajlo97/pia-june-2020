@@ -38,7 +38,7 @@
   </div>
   <!--HOTHOUSE-SPOTS-->
   <div class="card-body px-4">
-    <div class="row row-cols-1 row-cols-md-4">
+    <div class="row row-cols-1 row-cols-md-3">
       <div class="col mb-3" *ngFor="let control of dashboard.controls">
         <!--SINGLE-SPOT-->
         <div
@@ -72,13 +72,19 @@
                 <br />
                 <span>{{ control.seedling.manufacturer }}</span>
                 <br />
-                <div class="progress my-1">
+                <div class="progress position-relative my-1">
                   <div
                     class="progress-bar progress-bar-striped progress-bar-animated bg-success"
                     role="progressbar"
                     [style]="calculateProgressWidth(control)"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
                   >
-                    {{ control.progress }}%
+                    <strong
+                      class="justify-content-center d-flex position-absolute w-100"
+                      style="color: black;"
+                      >{{ control.progress }}%</strong
+                    >
                   </div>
                 </div>
                 <div class="text-center mt-3 mb-1">
@@ -123,6 +129,7 @@
                     data-toggle="modal"
                     data-target="#plant-modal"
                     [disabled]="control.state !== spotStates[0]"
+                    (click)="markSpot(control.spot.row, control.spot.col)"
                   >
                     Plant
                   </button>
@@ -260,6 +267,7 @@
                   type="button"
                   class="btn btn-outline-primary"
                   data-dismiss="modal"
+                  [disabled]="!itemStocked(seedling.quantity)"
                   (click)="plantSeedling(seedling)"
                 >
                   Plant

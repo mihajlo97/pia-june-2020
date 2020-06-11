@@ -17,6 +17,10 @@ import {
   WATER_MAX,
   TEMPERATURE_MIN,
   TEMPERATURE_MAX,
+  WarehouseItemType,
+  CreateSeedlingRequest,
+  UpdateDashboardResponse,
+  UpdateWarehouseItemRequest,
 } from 'src/app/models/worker';
 import { FormGroup, FormBuilder } from '@angular/forms';
 
@@ -26,128 +30,14 @@ import { FormGroup, FormBuilder } from '@angular/forms';
   styleUrls: ['./worker-hothouse.component.css'],
 })
 export class WorkerHothouseComponent implements OnInit {
-  //MOCK-DATA
-  id: string;
-  grid = [
-    {
-      row: 1,
-      col: 1,
-      occupied: false,
-      display: false,
-      ready: true,
-      done: false,
-    },
-    {
-      row: 1,
-      col: 2,
-      occupied: true,
-      display: false,
-      ready: true,
-      done: false,
-    },
-    {
-      row: 1,
-      col: 3,
-      occupied: false,
-      display: false,
-      ready: true,
-      done: false,
-    },
-    {
-      row: 1,
-      col: 4,
-      occupied: false,
-      display: false,
-      ready: true,
-      done: false,
-    },
-    { row: 1, col: 5, occupied: true, display: false, ready: true, done: true },
-    {
-      row: 2,
-      col: 1,
-      occupied: false,
-      display: false,
-      ready: false,
-      done: false,
-    },
-    {
-      row: 2,
-      col: 2,
-      occupied: false,
-      display: false,
-      ready: true,
-      done: false,
-    },
-    { row: 2, col: 3, occupied: true, display: false, ready: true, done: true },
-    {
-      row: 2,
-      col: 4,
-      occupied: false,
-      display: false,
-      ready: false,
-      done: false,
-    },
-    {
-      row: 2,
-      col: 5,
-      occupied: false,
-      display: false,
-      ready: true,
-      done: false,
-    },
-    {
-      row: 3,
-      col: 1,
-      occupied: false,
-      display: false,
-      ready: true,
-      done: false,
-    },
-    {
-      row: 3,
-      col: 2,
-      occupied: true,
-      display: false,
-      ready: true,
-      done: false,
-    },
-    {
-      row: 3,
-      col: 3,
-      occupied: true,
-      display: false,
-      ready: true,
-      done: false,
-    },
-    {
-      row: 3,
-      col: 4,
-      occupied: false,
-      display: false,
-      ready: false,
-      done: false,
-    },
-    {
-      row: 3,
-      col: 5,
-      occupied: false,
-      display: false,
-      ready: true,
-      done: false,
-    },
-  ];
-  seedlingss = [
-    { seedling: 'Test apple', days: 7, quantity: 20 },
-    { seedling: 'Test pear', days: 10, quantity: 12 },
-    { seedling: 'Test plum', days: 12, quantity: 45 },
-    { seedling: 'Test cherry', days: 6, quantity: 36 },
-    { seedling: 'Test peach', days: 14, quantity: 7 },
-  ];
-
-  dashboard: HothouseDashboard;
+  dashboard: HothouseDashboard = {} as HothouseDashboard;
   menuForm: FormGroup;
-
-  loadSuccess: boolean;
+  fertilizers: WarehouseItem[];
+  seedlings: WarehouseItem[];
+  lastSelectedSpot = {
+    row: 0,
+    col: 0,
+  };
 
   spotStates: SpotState[] = [
     SpotState.EMPTY,
@@ -155,8 +45,7 @@ export class WorkerHothouseComponent implements OnInit {
     SpotState.GROWING,
     SpotState.DONE,
   ];
-  fertilizers: WarehouseItem[] = [];
-  seedlings: WarehouseItem[] = [];
+  loadSuccess: boolean = true;
 
   constructor(
     private route: ActivatedRoute,
@@ -167,12 +56,33 @@ export class WorkerHothouseComponent implements OnInit {
       water: [WATER_DEFAULT],
       temperature: [TEMPERATURE_DEFAULT],
     });
-    worker
+    this.refreshDashboard();
+  }
+
+  ngOnInit(): void {}
+
+  refreshDashboard(): void {
+    this.worker
       .getHothouseDashboardData({ _id: this.route.snapshot.paramMap.get('id') })
       .then((res: HothouseDashboardDataResponse) => {
         //bind dashboard data
         this.dashboard._id = this.route.snapshot.paramMap.get('id');
         this.dashboard.model = res;
+
+        //convert dates to appropriate date objects
+        this.dashboard.model.hothouseControl.conditionsLastUpdatedOn = new Date(
+          this.dashboard.model.hothouseControl.conditionsLastUpdatedOn
+        );
+        this.dashboard.model.hothouseSpots.forEach((item, index) => {
+          this.dashboard.model.hothouseSpots[index].lastOccupiedOn = new Date(
+            item.lastOccupiedOn
+          );
+        });
+        this.dashboard.model.seedlings.forEach((item, index) => {
+          this.dashboard.model.seedlings[index].plantedOn = new Date(
+            item.plantedOn
+          );
+        });
 
         //bind menu data
         this.menuForm
@@ -187,7 +97,7 @@ export class WorkerHothouseComponent implements OnInit {
         this.dashboard.controls = [];
 
         this.dashboard.model.hothouseSpots.forEach((item) => {
-          let control: HothouseSpotUIControls;
+          let control: HothouseSpotUIControls = {} as HothouseSpotUIControls;
 
           control.display = false;
           control.spot = item;
@@ -226,42 +136,88 @@ export class WorkerHothouseComponent implements OnInit {
           this.dashboard.controls.push(control);
         });
 
+        //populate modals
+        this.fertilizers = this.dashboard.model.warehouseItems.filter(
+          (item) => item.type === WarehouseItemType.FERTILIZER
+        );
+        this.seedlings = this.dashboard.model.warehouseItems.filter(
+          (item) => item.type === WarehouseItemType.SEEDLING
+        );
+
         //bind menu to dashboard model
         this.menuForm.get('water').valueChanges.subscribe((value) => {
           if (value > WATER_MIN && value < WATER_MAX) {
             this.dashboard.model.hothouseControl.waterAmount = value;
           }
-          console.log(
-            '[DEBUG]: dashboard.model.hothouseControl:',
-            this.dashboard.model.hothouseControl
-          );
         });
         this.menuForm.get('temperature').valueChanges.subscribe((value) => {
           if (value > TEMPERATURE_MIN && value < TEMPERATURE_MAX) {
             this.dashboard.model.hothouseControl.temperature = value;
           }
-          console.log(
-            '[DEBUG]: dashboard.model.hothouseControl:',
-            this.dashboard.model.hothouseControl
-          );
         });
 
+        console.log('[DEBUG]: Dashboard: ', this.dashboard);
         //check errors
         this.loadSuccess = true;
       })
       .catch((err) => {
-        console.error('Loading-Hothouse-Dashboard-Exception:', err.error);
+        console.error('Loading-Hothouse-Dashboard-Exception:', err);
         this.loadSuccess = false;
       });
   }
 
-  ngOnInit(): void {}
+  markSpot(row: number, col: number): void {
+    this.lastSelectedSpot.row = row;
+    this.lastSelectedSpot.col = col;
+  }
+
+  itemStocked(quantity: number): boolean {
+    return Math.floor(quantity) > 0;
+  }
 
   calculateProgressWidth(control: HothouseSpotUIControls): string {
     return `width: ${control.progress}%`;
   }
 
-  plantSeedling(seedling: Seedling): void {}
+  async plantSeedling(seedlingItem: WarehouseItem): Promise<boolean> {
+    const reqCreate: CreateSeedlingRequest = {
+      seedling: {
+        hothouse: this.dashboard._id,
+        name: seedlingItem.name,
+        manufacturer: seedlingItem.manufacturer,
+        row: this.lastSelectedSpot.row,
+        col: this.lastSelectedSpot.col,
+        daysToGrow: seedlingItem.daysToGrow,
+      },
+    };
+    const seedlingResponse: UpdateDashboardResponse = await this.worker.createSeedling(
+      reqCreate
+    );
+    if (!seedlingResponse.success) {
+      console.error(
+        'Create-Seedling-Exception: Failed to save seedling to server.'
+      );
+      return Promise.reject(false);
+    }
+
+    const reqUpdate: UpdateWarehouseItemRequest = {
+      _id: seedlingItem._id,
+      hothouse: this.dashboard._id,
+      quantity: seedlingItem.quantity - 1,
+    };
+    const warehouseResponse: UpdateDashboardResponse = await this.worker.updateWarehouseItem(
+      reqUpdate
+    );
+    if (!warehouseResponse.success) {
+      console.error(
+        'Create-Seedling-Exception: Failed to save seedling to server.'
+      );
+      return Promise.reject(false);
+    }
+
+    this.refreshDashboard();
+    return Promise.resolve(true);
+  }
 
   pickSeedling(seedling: Seedling): void {}
 

@@ -12,6 +12,11 @@ export enum SpotState {
   DONE = 'done',
 }
 
+export enum WarehouseItemType {
+  SEEDLING = 'seedling',
+  FERTILIZER = 'fertilizer',
+}
+
 export const WATER_DEFAULT = 200;
 export const WATER_MIN = 0;
 export const WATER_MAX = 1000;
@@ -47,7 +52,7 @@ export interface HothouseItem {
 export interface WarehouseItem {
   _id: string;
   name: string;
-  type: string;
+  type: WarehouseItemType;
   manufacturer: string;
   quantity: number;
   daysToGrow?: number;
@@ -67,6 +72,7 @@ export interface FilterWarehouseRequest {
 }
 
 export interface HothouseSpot {
+  _id: string;
   row: number;
   col: number;
   occupied: boolean;
@@ -74,7 +80,7 @@ export interface HothouseSpot {
 }
 
 export interface Seedling {
-  _id: string;
+  _id?: string;
   hothouse: string;
   name: string;
   manufacturer: string;
@@ -87,8 +93,6 @@ export interface Seedling {
 }
 
 export interface HothouseControl {
-  capacity: number;
-  occupiedSpots: number;
   waterAmount: number;
   temperature: number;
   conditionsLastUpdatedOn: Date;
@@ -117,4 +121,44 @@ export interface HothouseDashboard {
   _id: string;
   model: HothouseDashboardDataResponse;
   controls: HothouseSpotUIControls[];
+}
+
+export interface CreateSeedling {
+  hothouse: string;
+  name: string;
+  manufacturer: string;
+  row: number;
+  col: number;
+  daysToGrow: number;
+}
+
+export interface CreateSeedlingRequest {
+  seedling: CreateSeedling;
+}
+
+export interface UpdateHothouseControl {
+  waterAmount?: number;
+  temperature?: number;
+  conditionsLastUpdatedOn?: Date;
+}
+
+export interface UpdateHothouseRequest {
+  _id: string;
+  controls?: HothouseControl;
+}
+
+export interface UpdateWarehouseItemRequest {
+  _id: string;
+  hothouse: string;
+  quantity: number;
+}
+
+export interface UpdateSeedlingRequest {
+  _id: string;
+  done?: boolean;
+  picked?: boolean;
+}
+
+export interface UpdateDashboardResponse {
+  success: boolean;
 }
