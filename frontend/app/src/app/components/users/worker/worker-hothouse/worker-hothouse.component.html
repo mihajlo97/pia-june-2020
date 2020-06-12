@@ -17,18 +17,20 @@
           id="water"
           min="0"
           class="form-control mx-3 rounded"
-          style="width: 5rem;"
+          style="width: 6rem;"
+          [class.is-invalid]="waterLow"
           formControlName="water"
           [value]="menuForm.value.water"
           onkeydown="return false"
         />
-        <label for="temperature">Temperature (°C): </label>
+        <label for="temperature">Temp. (°C): </label>
         <input
           type="number"
           id="temperature"
           min="0"
           class="form-control mx-3 rounded"
-          style="width: 5rem;"
+          style="width: 6rem;"
+          [class.is-invalid]="temperatureLow"
           formControlName="temperature"
           [value]="menuForm.value.temperature"
           onkeydown="return false"
@@ -103,6 +105,7 @@
                     style="width: 5rem;"
                     data-toggle="modal"
                     data-target="#apply-modal"
+                    (click)="markSpot(control.spot.row, control.spot.col)"
                   >
                     Apply
                   </button>
@@ -182,7 +185,10 @@
             </th>
           </thead>
           <tbody>
-            <tr *ngFor="let fertilizer of fertilizers">
+            <tr
+              *ngFor="let fertilizer of fertilizers"
+              [class.text-muted]="!itemStocked(fertilizer.quantity)"
+            >
               <td class="align-middle">
                 {{ fertilizer.name }}
               </td>
@@ -198,6 +204,7 @@
                   class="btn btn-outline-primary"
                   data-dismiss="modal"
                   (click)="applyFertilizer(fertilizer)"
+                  [disabled]="!itemStocked(fertilizer.quantity)"
                 >
                   Apply
                 </button>
@@ -254,7 +261,10 @@
             </th>
           </thead>
           <tbody>
-            <tr *ngFor="let seedling of seedlings">
+            <tr
+              *ngFor="let seedling of seedlings"
+              [class.text-muted]="!itemStocked(seedling.quantity)"
+            >
               <td class="align-middle">
                 {{ seedling.name }}
               </td>

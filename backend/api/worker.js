@@ -409,6 +409,7 @@ exports.createSeedling = async (req, res) => {
       col: req.body.seedling.col,
       plantedOn: new Date(),
       daysToGrow: req.body.seedling.daysToGrow,
+      growthAcceleratedBy: 0,
       done: false,
       picked: false,
     });
@@ -426,6 +427,9 @@ exports.createSeedling = async (req, res) => {
     }
     hothouse.spots[index].occupied = true;
     hothouse.spots[index].lastOccupiedOn = null;
+
+    //update hothouse
+    hothouse.occupiedSpots++;
     const doc = await hothouse.save();
     if (!doc) {
       throw new Error("On-Save-Exception: Failed to save the document.");
@@ -494,6 +498,157 @@ exports.updateWarehouseItem = async (req, res) => {
   } catch (err) {
     console.error(
       "[ERROR][DB]: @api/worker/warehouse/update\nDatabase-Query-Exception: Query call failed.\nQuery: Updating warehouse item.\nError-Log:\n",
+      err
+    );
+    res.status(500).json(response);
+  }
+};
+
+//POST @api/worker/hothouse/seedling/update
+exports.updateSeedling = async (req, res) => {
+  let response = { success: false };
+
+  //handle bad request
+  if (!req.body._id) {
+    console.info(
+      "[POST][RES]: @api/worker/hothouse/seedling/update\nAPI-Call-Result: 400.\nResult-Origin: Request params.\nResponse:\n",
+      response
+    );
+    return res.status(400).json(response);
+  }
+
+  try {
+    //adjust seedling properties as requested
+    const seedling = await Seedling.findById(req.body._id);
+    if (!seedling) {
+      throw new Error("Item-Not-Found-Exception: Seedling.");
+    }
+
+    if (req.body.hasOwnProperty("accelerateGrowthBy")) {
+      if (req.body.accelerateGrowthBy < 0) {
+        throw new Error(
+          "Out-Of-Bounds-Value-Exception: Growth accelerant out of range."
+        );
+      }
+      seedling.growthAcceleratedBy += req.body.accelerateGrowthBy;
+
+      const acceleratedTime =
+        1000 * 60 * 60 * 24 * seedling.growthAcceleratedBy;
+      const doneByOffset = 1000 * 60 * 60 * 24 * seedling.daysToGrow;
+      if (
+        seedling.plantedOn.getTime() + acceleratedTime >=
+        seedling.plantedOn.getTime() + doneByOffset
+      ) {
+        seedling.done = true;
+      }
+    }
+
+    if (req.body.hasOwnProperty("picked")) {
+      seedling.picked = req.body.picked;
+
+      //update hothouse if picked
+      if (seedling.picked) {
+        const hothouse = await Hothouse.findById(seedling.hothouse);
+        if (!hothouse) {
+          throw new Error("Item-Not-Found-Exception: Hothouse.");
+        }
+
+        const index = hothouse.spots.findIndex(
+          (item) => item.row === seedling.row && item.col === seedling.col
+        );
+        hothouse.spots[index].occupied = false;
+        hothouse.spots[index].lastOccupiedOn = new Date();
+        hothouse.occupiedSpots--;
+
+        const onSaveHothouse = await hothouse.save();
+        if (!onSaveHothouse) {
+          throw new Error("On-Save-Exception: Failed to save the document.");
+        }
+      }
+    }
+
+    //save changes
+    const onSaveSeedling = await seedling.save();
+    if (!onSaveSeedling) {
+      throw new Error("On-Save-Exception: Failed to save the document.");
+    }
+
+    response.success = true;
+    console.info(
+      "[POST][RES]: @api/worker/hothouse/seedling/update\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
+      response
+    );
+    return res.status(200).json(response);
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/worker/seedling/update\nDatabase-Query-Exception: Query call failed.\nQuery: Updating seedling.\nError-Log:\n",
+      err
+    );
+    res.status(500).json(response);
+  }
+};
+
+//POST @api/worker/hothouse/update
+exports.updateHothouse = async (req, res) => {
+  let response = { success: true };
+
+  //handle bad request
+  if (!req.body._id) {
+    console.info(
+      "[POST][RES]: @api/worker/hothouse/update\nAPI-Call-Result: 400.\nResult-Origin: Request params.\nResponse:\n",
+      response
+    );
+    return res.status(400).json(response);
+  }
+
+  try {
+    const hothouse = await Hothouse.findById(req.body._id);
+    if (!hothouse) {
+      throw new Error("Item-Not-Found-Exception: Hothouse.");
+    }
+
+    if (req.body.hasOwnProperty("controls")) {
+      if (req.body.controls.hasOwnProperty("waterAmount")) {
+        if (req.body.controls.waterAmount < 0) {
+          throw new Error(
+            "Out-Of-Bounds-Value-Exception: Water amount must be nonnegative."
+          );
+        }
+        hothouse.waterAmount = req.body.controls.waterAmount;
+      }
+
+      if (req.body.controls.hasOwnProperty("temperature")) {
+        if (
+          req.body.controls.temperature < -20 ||
+          req.body.controls.temperature > 50
+        ) {
+          throw new Error(
+            "Out-Of-Bounds-Value-Exception: Temperature out of range."
+          );
+        }
+        hothouse.temperature = req.body.controls.temperature;
+      }
+
+      hothouse.conditionsLastUpdatedOn = new Date();
+      const onSaveHothouse = await hothouse.save();
+      if (!onSaveHothouse) {
+        throw new Error("On-Save-Exception: Failed to save the document.");
+      }
+    }
+
+    response.success = true;
+    console.info(
+      "[POST][RES]: @api/worker/hothouse/update\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
+      {
+        response: response,
+        water: hothouse.waterAmount,
+        temperature: hothouse.temperature,
+      }
+    );
+    return res.status(200).json(response);
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/worker/hothouse/update\nDatabase-Query-Exception: Query call failed.\nQuery: Updating hothouse.\nError-Log:\n",
       err
     );
     res.status(500).json(response);

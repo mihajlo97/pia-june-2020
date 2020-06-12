@@ -134,6 +134,12 @@ exports.SeedlingSchema = new Schema(
       default: 1,
       immutable: true,
     },
+    growthAcceleratedBy: {
+      type: Number,
+      required: true,
+      min: 0,
+      default: 0,
+    },
     done: {
       type: Boolean,
       required: true,

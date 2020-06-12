@@ -20,12 +20,15 @@ export enum WarehouseItemType {
 export const WATER_DEFAULT = 200;
 export const WATER_MIN = 0;
 export const WATER_MAX = 1000;
+export const WATER_LOW = 75;
 export const TEMPERATURE_DEFAULT = 18;
 export const TEMPERATURE_MIN = -20;
 export const TEMPERATURE_MAX = 50;
+export const TEMPERATURE_LOW = 12;
 export const PROGRESS_MAX = 100;
 export const PROGRESS_MIN = 0;
 export const PREPARING_TIME = 1000 * 60 * 60 * 24;
+export const DAY_IN_MILIS = 1000 * 60 * 60 * 24;
 
 export interface CreateHothouseRequest {
   username: string;
@@ -88,6 +91,7 @@ export interface Seedling {
   col: number;
   plantedOn: Date;
   daysToGrow: number;
+  growthAcceleratedBy: number;
   done: boolean;
   picked: boolean;
 }
@@ -139,12 +143,11 @@ export interface CreateSeedlingRequest {
 export interface UpdateHothouseControl {
   waterAmount?: number;
   temperature?: number;
-  conditionsLastUpdatedOn?: Date;
 }
 
 export interface UpdateHothouseRequest {
   _id: string;
-  controls?: HothouseControl;
+  controls?: UpdateHothouseControl;
 }
 
 export interface UpdateWarehouseItemRequest {
@@ -155,7 +158,7 @@ export interface UpdateWarehouseItemRequest {
 
 export interface UpdateSeedlingRequest {
   _id: string;
-  done?: boolean;
+  accelerateGrowthBy?: number;
   picked?: boolean;
 }
 

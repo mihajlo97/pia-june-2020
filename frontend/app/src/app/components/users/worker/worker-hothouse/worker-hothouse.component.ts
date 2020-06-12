@@ -21,8 +21,14 @@ import {
   CreateSeedlingRequest,
   UpdateDashboardResponse,
   UpdateWarehouseItemRequest,
+  UpdateHothouseRequest,
+  WATER_LOW,
+  TEMPERATURE_LOW,
+  UpdateSeedlingRequest,
+  DAY_IN_MILIS,
 } from 'src/app/models/worker';
 import { FormGroup, FormBuilder } from '@angular/forms';
+import { debounceTime } from 'rxjs/operators';
 
 @Component({
   selector: 'app-worker-hothouse',
@@ -31,21 +37,24 @@ import { FormGroup, FormBuilder } from '@angular/forms';
 })
 export class WorkerHothouseComponent implements OnInit {
   dashboard: HothouseDashboard = {} as HothouseDashboard;
-  menuForm: FormGroup;
-  fertilizers: WarehouseItem[];
-  seedlings: WarehouseItem[];
   lastSelectedSpot = {
     row: 0,
     col: 0,
   };
 
+  //binded to view
+  menuForm: FormGroup;
+  loadSuccess: boolean = true;
+  waterLow: boolean = false;
+  temperatureLow: boolean = false;
+  fertilizers: WarehouseItem[];
+  seedlings: WarehouseItem[];
   spotStates: SpotState[] = [
     SpotState.EMPTY,
     SpotState.PREPARING,
     SpotState.GROWING,
     SpotState.DONE,
   ];
-  loadSuccess: boolean = true;
 
   constructor(
     private route: ActivatedRoute,
@@ -108,16 +117,7 @@ export class WorkerHothouseComponent implements OnInit {
             );
             control.seedling = seedling;
             control.state = seedling.done ? SpotState.DONE : SpotState.GROWING;
-            if (seedling.done) {
-              control.progress = PROGRESS_MAX;
-            } else {
-              const plantedOn = seedling.plantedOn.getTime();
-              const doneOn =
-                plantedOn + 1000 * 60 * 60 * 24 * seedling.daysToGrow;
-              control.progress = Math.floor(
-                ((now - plantedOn) / (doneOn - plantedOn)) * 100
-              );
-            }
+            control.progress = this.calculateProgress(seedling);
           }
           //display preparing / empty spot
           else {
@@ -145,18 +145,19 @@ export class WorkerHothouseComponent implements OnInit {
         );
 
         //bind menu to dashboard model
-        this.menuForm.get('water').valueChanges.subscribe((value) => {
-          if (value > WATER_MIN && value < WATER_MAX) {
-            this.dashboard.model.hothouseControl.waterAmount = value;
-          }
-        });
-        this.menuForm.get('temperature').valueChanges.subscribe((value) => {
-          if (value > TEMPERATURE_MIN && value < TEMPERATURE_MAX) {
-            this.dashboard.model.hothouseControl.temperature = value;
-          }
-        });
+        this.menuForm
+          .get('water')
+          .valueChanges.pipe(debounceTime(1000))
+          .subscribe((value) => {
+            this.updateWater(value);
+          });
+        this.menuForm
+          .get('temperature')
+          .valueChanges.pipe(debounceTime(1000))
+          .subscribe((value) => {
+            this.updateTemperature(value);
+          });
 
-        console.log('[DEBUG]: Dashboard: ', this.dashboard);
         //check errors
         this.loadSuccess = true;
       })
@@ -175,8 +176,75 @@ export class WorkerHothouseComponent implements OnInit {
     return Math.floor(quantity) > 0;
   }
 
+  calculateProgress(seedling: Seedling): number {
+    if (seedling.done) {
+      return PROGRESS_MAX;
+    }
+
+    let progress: number;
+    const now = new Date().getTime();
+    const plantedOn = seedling.plantedOn.getTime();
+    const doneOn = plantedOn + DAY_IN_MILIS * seedling.daysToGrow;
+    const compoundAcceleratedTime = DAY_IN_MILIS * seedling.growthAcceleratedBy;
+
+    progress = Math.floor(
+      ((now + compoundAcceleratedTime - plantedOn) / (doneOn - plantedOn)) * 100
+    );
+    progress = progress > PROGRESS_MAX ? PROGRESS_MAX : progress;
+
+    return progress;
+  }
+
   calculateProgressWidth(control: HothouseSpotUIControls): string {
     return `width: ${control.progress}%`;
+  }
+
+  updateWater(value: number): void {
+    if (value < WATER_MIN || value > WATER_MAX) {
+      return;
+    }
+
+    const req: UpdateHothouseRequest = {
+      _id: this.dashboard._id,
+      controls: { waterAmount: value },
+    };
+    this.worker
+      .updateHothouse(req)
+      .then((res: UpdateDashboardResponse) => {
+        if (res.success) {
+          this.dashboard.model.hothouseControl.waterAmount = value;
+          this.waterLow = value < WATER_LOW;
+        }
+      })
+      .catch((err) => {
+        console.error(
+          'Update-Hothouse-Control-Exception: Failed to update water levels.'
+        );
+      });
+  }
+
+  updateTemperature(value: number): void {
+    if (value < TEMPERATURE_MIN || value > TEMPERATURE_MAX) {
+      return;
+    }
+
+    const req: UpdateHothouseRequest = {
+      _id: this.dashboard._id,
+      controls: { temperature: value },
+    };
+    this.worker
+      .updateHothouse(req)
+      .then((res: UpdateDashboardResponse) => {
+        if (res.success) {
+          this.dashboard.model.hothouseControl.temperature = value;
+          this.temperatureLow = value < TEMPERATURE_LOW;
+        }
+      })
+      .catch((err) => {
+        console.error(
+          'Update-Hothouse-Control-Exception: Failed to update temperature levels.'
+        );
+      });
   }
 
   async plantSeedling(seedlingItem: WarehouseItem): Promise<boolean> {
@@ -210,7 +278,7 @@ export class WorkerHothouseComponent implements OnInit {
     );
     if (!warehouseResponse.success) {
       console.error(
-        'Create-Seedling-Exception: Failed to save seedling to server.'
+        'Update-Warehouse-Item-Exception: Failed to update warehouse.'
       );
       return Promise.reject(false);
     }
@@ -221,5 +289,43 @@ export class WorkerHothouseComponent implements OnInit {
 
   pickSeedling(seedling: Seedling): void {}
 
-  applyFertilizer(fertilizer: WarehouseItem): void {}
+  async applyFertilizer(fertilizer: WarehouseItem): Promise<boolean> {
+    const seedling = this.dashboard.model.seedlings.find(
+      (item) =>
+        item.row === this.lastSelectedSpot.row &&
+        item.col === this.lastSelectedSpot.col
+    );
+
+    const reqSeedling: UpdateSeedlingRequest = {
+      _id: seedling._id,
+      accelerateGrowthBy: fertilizer.accelerateGrowthBy,
+    };
+    const resSeedling: UpdateDashboardResponse = await this.worker.updateSeedling(
+      reqSeedling
+    );
+    if (!resSeedling.success) {
+      console.error(
+        'Update-Seedling-Exception: Failed to update time to grow.'
+      );
+      return Promise.reject(false);
+    }
+
+    const reqWarehouse: UpdateWarehouseItemRequest = {
+      _id: fertilizer._id,
+      hothouse: this.dashboard._id,
+      quantity: fertilizer.quantity - 1,
+    };
+    const resWarehouse: UpdateDashboardResponse = await this.worker.updateWarehouseItem(
+      reqWarehouse
+    );
+    if (!resWarehouse.success) {
+      console.error(
+        'Update-Warehouse-Item-Exception: Failed to update warehouse.'
+      );
+      return Promise.reject(false);
+    }
+
+    this.refreshDashboard();
+    return Promise.resolve(true);
+  }
 }
