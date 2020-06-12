@@ -128,7 +128,7 @@ export class WorkerHothouseComponent implements OnInit {
             } else {
               const readyOn = item.lastOccupiedOn.getTime() + PREPARING_TIME;
               control.state =
-                now > readyOn ? SpotState.EMPTY : SpotState.PREPARING;
+                now >= readyOn ? SpotState.EMPTY : SpotState.PREPARING;
             }
           }
 
@@ -218,7 +218,8 @@ export class WorkerHothouseComponent implements OnInit {
       })
       .catch((err) => {
         console.error(
-          'Update-Hothouse-Control-Exception: Failed to update water levels.'
+          'Update-Hothouse-Control-Exception: Failed to update water levels.',
+          err
         );
       });
   }
@@ -242,7 +243,8 @@ export class WorkerHothouseComponent implements OnInit {
       })
       .catch((err) => {
         console.error(
-          'Update-Hothouse-Control-Exception: Failed to update temperature levels.'
+          'Update-Hothouse-Control-Exception: Failed to update temperature levels.',
+          err
         );
       });
   }
@@ -287,7 +289,26 @@ export class WorkerHothouseComponent implements OnInit {
     return Promise.resolve(true);
   }
 
-  pickSeedling(seedling: Seedling): void {}
+  pickSeedling(seedling: Seedling): void {
+    const req: UpdateSeedlingRequest = {
+      _id: seedling._id,
+      picked: true,
+    };
+
+    this.worker
+      .updateSeedling(req)
+      .then((res: UpdateDashboardResponse) => {
+        if (res.success) {
+          this.refreshDashboard();
+        }
+      })
+      .catch((err) => {
+        console.error(
+          'Update-Seedling-Exception: Failed to update seedling.',
+          err
+        );
+      });
+  }
 
   async applyFertilizer(fertilizer: WarehouseItem): Promise<boolean> {
     const seedling = this.dashboard.model.seedlings.find(
