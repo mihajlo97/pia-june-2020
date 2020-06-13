@@ -543,6 +543,12 @@ exports.updateSeedling = async (req, res) => {
       }
     }
 
+    if (req.body.hasOwnProperty("done")) {
+      if (req.body.done) {
+        seedling.done = true;
+      }
+    }
+
     if (req.body.hasOwnProperty("picked")) {
       seedling.picked = req.body.picked;
 

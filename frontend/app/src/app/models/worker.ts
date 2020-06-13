@@ -29,6 +29,10 @@ export const PROGRESS_MAX = 100;
 export const PROGRESS_MIN = 0;
 export const PREPARING_TIME = 1000 * 60 * 60 * 24;
 export const DAY_IN_MILIS = 1000 * 60 * 60 * 24;
+export const DASHBOARD_REFRESH_RATE = 1000 * 60;
+export const UPDATE_CONDITIONS_EVERY_MILIS = 1000 * 60 * 60;
+export const WATER_LEVEL_DECREASE = 1;
+export const TEMPERATURE_LEVEL_DECREASE = 0.5;
 
 export interface CreateHothouseRequest {
   username: string;
@@ -159,6 +163,7 @@ export interface UpdateWarehouseItemRequest {
 export interface UpdateSeedlingRequest {
   _id: string;
   accelerateGrowthBy?: number;
+  done?: boolean;
   picked?: boolean;
 }
 

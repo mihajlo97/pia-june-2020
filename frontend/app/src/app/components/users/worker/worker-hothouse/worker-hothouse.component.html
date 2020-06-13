@@ -15,7 +15,7 @@
         <input
           type="number"
           id="water"
-          min="0"
+          [min]="minWater"
           class="form-control mx-3 rounded"
           style="width: 6rem;"
           [class.is-invalid]="waterLow"
@@ -27,7 +27,7 @@
         <input
           type="number"
           id="temperature"
-          min="0"
+          [min]="minTemp"
           class="form-control mx-3 rounded"
           style="width: 6rem;"
           [class.is-invalid]="temperatureLow"
