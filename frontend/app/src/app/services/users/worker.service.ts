@@ -14,6 +14,8 @@ import {
   UpdateHothouseRequest,
   UpdateWarehouseItemRequest,
   UpdateSeedlingRequest,
+  NotifyUserRequest,
+  NotifyUserResponse,
 } from 'src/app/models/worker';
 import { Observable } from 'rxjs';
 
@@ -113,6 +115,16 @@ export class WorkerService {
     return this.http
       .post<UpdateDashboardResponse>(
         `${this._workerAPI}/hothouse/seedling/update`,
+        req,
+        this._httpOptions
+      )
+      .toPromise();
+  }
+
+  notifyUser(req: NotifyUserRequest): Promise<NotifyUserResponse> {
+    return this.http
+      .post<NotifyUserResponse>(
+        `${this._workerAPI}/hothouse/notify`,
         req,
         this._httpOptions
       )

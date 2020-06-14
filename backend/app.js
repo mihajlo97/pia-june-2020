@@ -208,5 +208,11 @@ app.post(
   worker.updateHothouse
 );
 
+app.post(
+  `${workerPath}/hothouse/notify`,
+  worker.checkWorkerPermission,
+  worker.hothouseLowConditionsNotify
+);
+
 //<====[TESTING]====>
 app.get("/test/add-admin", dbTest.addMasterAdmin);

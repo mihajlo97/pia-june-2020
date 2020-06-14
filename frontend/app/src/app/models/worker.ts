@@ -54,6 +54,7 @@ export interface HothouseItem {
   occupiedSpots: number;
   waterAmount: number;
   temperature: number;
+  conditionsLastUpdatedOn: Date;
 }
 
 export interface WarehouseItem {
@@ -168,5 +169,13 @@ export interface UpdateSeedlingRequest {
 }
 
 export interface UpdateDashboardResponse {
+  success: boolean;
+}
+
+export interface NotifyUserRequest {
+  _id: string;
+}
+
+export interface NotifyUserResponse {
   success: boolean;
 }

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Tabs } from 'src/app/models/worker';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-worker-dashboard',

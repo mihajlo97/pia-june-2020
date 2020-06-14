@@ -1,9 +1,12 @@
 const mongoose = require("mongoose");
+const nodemailer = require("nodemailer");
 const worker = require("../models/worker");
 const users = require("../models/users");
 
 const WATER_DEFAULT = 200;
 const TEMPERATURE_DEFAULT = 18.0;
+const WATER_LOW = 75;
+const TEMPERATURE_LOW = 12;
 
 //[DB-COLLECTIONS]
 const Hothouse = mongoose.model("Hothouses", worker.HothouseSchema);
@@ -148,6 +151,7 @@ exports.getHothouses = async (req, res) => {
     occupiedSpots: 0,
     waterAmount: 0,
     temperature: 0,
+    conditionsLastUpdatedOn: null,
   };
 
   try {
@@ -167,6 +171,7 @@ exports.getHothouses = async (req, res) => {
         hothouseItem.occupiedSpots = doc.occupiedSpots;
         hothouseItem.waterAmount = doc.waterAmount;
         hothouseItem.temperature = doc.temperature;
+        hothouseItem.conditionsLastUpdatedOn = doc.conditionsLastUpdatedOn;
         res.write(JSON.stringify(hothouseItem));
       }
       if (docNext) {
@@ -655,6 +660,91 @@ exports.updateHothouse = async (req, res) => {
   } catch (err) {
     console.error(
       "[ERROR][DB]: @api/worker/hothouse/update\nDatabase-Query-Exception: Query call failed.\nQuery: Updating hothouse.\nError-Log:\n",
+      err
+    );
+    res.status(500).json(response);
+  }
+};
+
+//POST @api/worker/hothouse/notify
+exports.hothouseLowConditionsNotify = async (req, res) => {
+  let response = { success: false };
+
+  if (!req.body._id) {
+    console.info(
+      "[POST][RES]: @api/worker/hothouse/notify\nAPI-Call-Result: 400.\nResult-Origin: Request params.\nResponse:\n",
+      response
+    );
+    return res.status(400).json(response);
+  }
+
+  let hothouse;
+  let user;
+
+  //fetch hothouse and user data
+  try {
+    hothouse = await Hothouse.findById(req.body._id);
+    if (!hothouse) {
+      throw new Error("Item-Not-Found-Exception: Hothouse.");
+    }
+
+    user = await Users.findOne({
+      username: hothouse.owner,
+    })
+      .populate("info")
+      .exec();
+    if (!user) {
+      throw new Error("Item-Not-Found-Exception: User.");
+    }
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/worker/hothouse/notify\nDatabase-Query-Exception: Query call failed.\nQuery: Fetching hothouse and owner data.\nError-Log:\n",
+      err
+    );
+    res.status(500).json(response);
+  }
+
+  //send email notifaction
+  try {
+    const messageHTML = `<p>Low conditions have been detected in your hothouse which need to be addressed.</p><ul><li><b>Username:</b> ${user.username}</li><li><b>Hothouse:</b> ${hothouse.name}</li>`;
+    const waterHTML =
+      hothouse.waterAmount < WATER_LOW
+        ? `<li style="color: red;"><b>Water amount:</b> ${hothouse.waterAmount}</li>`
+        : `<li><b>Water amount:</b> ${hothouse.waterAmount}</li>`;
+    const tempHTML =
+      hothouse.temperature < TEMPERATURE_LOW
+        ? `<li style="color: red;"><b>Temperature level:</b> ${hothouse.temperature}</li>`
+        : `<li><b>Temperature level:</b> ${hothouse.temperature}</li>`;
+    const emailBodyHTML = messageHTML + waterHTML + tempHTML + "</ul>";
+
+    //create email transporter
+    const transporter = nodemailer.createTransport({
+      host: "smtp.mailtrap.io",
+      port: 2525,
+      auth: {
+        user: "42ec2835d7dad7",
+        pass: "cd53eb81f3d27f",
+      },
+      secure: false,
+    });
+
+    //email contents
+    const email = await transporter.sendMail({
+      from: '"PIA Manager" <pia_manager_service@gmail.com>',
+      to: `${user.info.email}`,
+      subject: "Low conditions",
+      html: emailBodyHTML,
+    });
+
+    response.success = true;
+    console.info(
+      "[POST][RES]: @api/worker/hothouse/notify\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
+      response
+    );
+    return res.status(200).json(response);
+  } catch (err) {
+    console.error(
+      "[ERROR]: @api/worker/hothouse/notify\nEmail-Sending-Exception: Failed to send email to user.\nError log:\n",
       err
     );
     res.status(500).json(response);

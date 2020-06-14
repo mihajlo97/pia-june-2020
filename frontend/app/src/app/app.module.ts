@@ -12,6 +12,8 @@ import {
   RECAPTCHA_SETTINGS,
   RecaptchaSettings,
 } from 'ng-recaptcha';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { ToastrModule } from 'ngx-toastr';
 
 //App declarations
 import { AppRoutingModule } from './app-routing.module';
@@ -89,6 +91,10 @@ import { WorkerWarehouseComponent } from './components/users/worker/worker-wareh
     FormsModule,
     RecaptchaModule,
     RecaptchaFormsModule,
+    BrowserAnimationsModule,
+    ToastrModule.forRoot({
+      positionClass: 'toast-bottom-right',
+    }),
   ],
   providers: [
     {
