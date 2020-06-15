@@ -124,6 +124,7 @@ export interface HothouseDashboardDataResponse {
   hothouseSpots: HothouseSpot[];
   warehouseItems: WarehouseItem[];
   seedlings: Seedling[];
+  name: string;
 }
 
 export interface HothouseDashboard {
@@ -148,6 +149,7 @@ export interface CreateSeedlingRequest {
 export interface UpdateHothouseControl {
   waterAmount?: number;
   temperature?: number;
+  conditionsLastUpdatedOn?: Date;
 }
 
 export interface UpdateHothouseRequest {
@@ -178,4 +180,14 @@ export interface NotifyUserRequest {
 
 export interface NotifyUserResponse {
   success: boolean;
+}
+
+export interface LowConditionNotification {
+  hothouseID: string;
+  name: string;
+  toastrID: number;
+}
+
+export interface EmailNotificationRegistry {
+  hothouseID: string;
 }

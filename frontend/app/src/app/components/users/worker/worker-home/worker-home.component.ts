@@ -13,7 +13,6 @@ import {
   TEMPERATURE_LOW,
 } from 'src/app/models/worker';
 import { map } from 'rxjs/operators';
-import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-worker-home',
@@ -23,13 +22,11 @@ import { ToastrService } from 'ngx-toastr';
 export class WorkerHomeComponent implements OnInit {
   itemStream$: Observable<HothouseItem[]>;
   itemSubscription: Subscription;
-  notifcationIDs: number[] = [];
 
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-    private worker: WorkerService,
-    private toastr: ToastrService
+    private worker: WorkerService
   ) {
     this.itemStream$ = worker.getHothouses().pipe(
       map((items) => {
@@ -63,19 +60,12 @@ export class WorkerHomeComponent implements OnInit {
             item.waterAmount < WATER_LOW ||
             item.temperature < TEMPERATURE_LOW
           ) {
-            this.notifcationIDs.push(
-              this.toastr.warning(
-                `Hothouse ${item.name} requires maintenance.`,
-                'Low conditions',
-                { disableTimeOut: true, tapToDismiss: false }
-              ).toastId
-            );
+            worker.manageNotifications(item._id, item.name);
           }
         });
         return items;
       })
     );
-    //this.itemSubscription = this.itemStream$.subscribe();
   }
 
   ngOnInit(): void {}
@@ -86,9 +76,5 @@ export class WorkerHomeComponent implements OnInit {
 
   viewWarehouse(id: number): void {
     this.router.navigate([`../warehouse/${id}`], { relativeTo: this.route });
-  }
-
-  ngOnDestroy(): void {
-    //this.itemSubscription.unsubscribe();
   }
 }

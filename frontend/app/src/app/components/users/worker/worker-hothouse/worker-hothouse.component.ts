@@ -30,7 +30,6 @@ import {
   UPDATE_CONDITIONS_EVERY_MILIS,
   WATER_LEVEL_DECREASE,
   TEMPERATURE_LEVEL_DECREASE,
-  NotifyUserRequest,
 } from 'src/app/models/worker';
 import { FormGroup, FormBuilder } from '@angular/forms';
 import { debounceTime } from 'rxjs/operators';
@@ -69,7 +68,7 @@ export class WorkerHothouseComponent implements OnInit {
     private worker: WorkerService,
     private fb: FormBuilder
   ) {
-    this.menuForm = fb.group({
+    this.menuForm = this.fb.group({
       water: [WATER_DEFAULT],
       temperature: [TEMPERATURE_DEFAULT],
     });
@@ -145,6 +144,18 @@ export class WorkerHothouseComponent implements OnInit {
           (item) => item.type === WarehouseItemType.SEEDLING
         );
 
+        //bind original menu values from db
+        this.menuForm
+          .get('water')
+          .setValue(this.dashboard.model.hothouseControl.waterAmount);
+        this.menuForm
+          .get('temperature')
+          .setValue(this.dashboard.model.hothouseControl.temperature);
+        this.waterLow =
+          this.dashboard.model.hothouseControl.waterAmount < WATER_LOW;
+        this.temperatureLow =
+          this.dashboard.model.hothouseControl.temperature < TEMPERATURE_LOW;
+
         //bind menu to dashboard model
         this.menuForm
           .get('water')
@@ -159,13 +170,8 @@ export class WorkerHothouseComponent implements OnInit {
             this.updateTemperature(value);
           });
 
-        //bind menu data
-        this.menuForm
-          .get('water')
-          .setValue(this.dashboard.model.hothouseControl.waterAmount);
-        this.menuForm
-          .get('temperature')
-          .setValue(this.dashboard.model.hothouseControl.temperature);
+        //update menu data
+        this.updateConditionsMenu();
 
         //check errors
         this.loadSuccess = true;
@@ -184,36 +190,10 @@ export class WorkerHothouseComponent implements OnInit {
 
   intervalViewRefresher(): void {
     setInterval(() => {
-      const now = new Date().getTime();
-
-      //update hothouse conditions
-      const hothouseControl = this.dashboard.model.hothouseControl;
-      let updateMoment = hothouseControl.conditionsLastUpdatedOn.getTime();
-      let compoundWaterDecrease = 0;
-      let compoundTemperatureDecrease = 0;
-      let hourPassed = false;
-
-      while (updateMoment + UPDATE_CONDITIONS_EVERY_MILIS <= now) {
-        compoundWaterDecrease += WATER_LEVEL_DECREASE;
-        compoundTemperatureDecrease += TEMPERATURE_LEVEL_DECREASE;
-        updateMoment += UPDATE_CONDITIONS_EVERY_MILIS;
-        hourPassed = true;
-      }
-      if (hourPassed) {
-        const waterLevel =
-          hothouseControl.waterAmount - compoundWaterDecrease > WATER_MIN
-            ? hothouseControl.waterAmount - compoundWaterDecrease
-            : WATER_MIN;
-        const temperatureLevel =
-          hothouseControl.temperature - compoundTemperatureDecrease >
-          TEMPERATURE_MIN
-            ? hothouseControl.temperature - compoundTemperatureDecrease
-            : TEMPERATURE_MIN;
-        this.menuForm.get('water').setValue(waterLevel);
-        this.menuForm.get('temperature').setValue(temperatureLevel);
-      }
+      this.updateConditionsMenu();
 
       //update hothouse spots
+      const now = new Date().getTime();
       for (let i = 0; i < this.dashboard.controls.length; i++) {
         const control = this.dashboard.controls[i];
 
@@ -303,6 +283,35 @@ export class WorkerHothouseComponent implements OnInit {
     return true;
   }
 
+  updateConditionsMenu(): void {
+    const now = new Date().getTime();
+    const hothouseControl = this.dashboard.model.hothouseControl;
+    let updateMoment = hothouseControl.conditionsLastUpdatedOn.getTime();
+    let compoundWaterDecrease = 0;
+    let compoundTemperatureDecrease = 0;
+    let hourPassed = false;
+
+    while (updateMoment + UPDATE_CONDITIONS_EVERY_MILIS <= now) {
+      compoundWaterDecrease += WATER_LEVEL_DECREASE;
+      compoundTemperatureDecrease += TEMPERATURE_LEVEL_DECREASE;
+      updateMoment += UPDATE_CONDITIONS_EVERY_MILIS;
+      hourPassed = true;
+    }
+    if (hourPassed) {
+      const waterLevel =
+        hothouseControl.waterAmount - compoundWaterDecrease > WATER_MIN
+          ? hothouseControl.waterAmount - compoundWaterDecrease
+          : WATER_MIN;
+      const temperatureLevel =
+        hothouseControl.temperature - compoundTemperatureDecrease >
+        TEMPERATURE_MIN
+          ? hothouseControl.temperature - compoundTemperatureDecrease
+          : TEMPERATURE_MIN;
+      this.menuForm.get('water').setValue(waterLevel);
+      this.menuForm.get('temperature').setValue(temperatureLevel);
+    }
+  }
+
   //user actions
   updateWater(value: number): void {
     if (value < WATER_MIN || value > WATER_MAX) {
@@ -311,7 +320,7 @@ export class WorkerHothouseComponent implements OnInit {
 
     const req: UpdateHothouseRequest = {
       _id: this.dashboard._id,
-      controls: { waterAmount: value },
+      controls: { waterAmount: value, conditionsLastUpdatedOn: new Date() },
     };
     this.worker
       .updateHothouse(req)
@@ -321,15 +330,18 @@ export class WorkerHothouseComponent implements OnInit {
           this.waterLow = value < WATER_LOW;
 
           if (this.waterLow) {
-            const notifyRequest: NotifyUserRequest = {
-              _id: this.dashboard._id,
-            };
-            this.worker.notifyUser(notifyRequest).catch((err) => {
-              console.error(
-                'Notify-User-Low-Conditions-Exception: Failed to notify user via email.',
-                err
+            this.worker.manageNotifications(
+              this.dashboard._id,
+              this.dashboard.model.name
+            );
+          } else {
+            if (this.menuForm.get('temperature').value >= TEMPERATURE_LOW) {
+              this.worker.manageNotifications(
+                this.dashboard._id,
+                this.dashboard.model.name,
+                true
               );
-            });
+            }
           }
         }
       })
@@ -348,7 +360,7 @@ export class WorkerHothouseComponent implements OnInit {
 
     const req: UpdateHothouseRequest = {
       _id: this.dashboard._id,
-      controls: { temperature: value },
+      controls: { temperature: value, conditionsLastUpdatedOn: new Date() },
     };
     this.worker
       .updateHothouse(req)
@@ -358,15 +370,18 @@ export class WorkerHothouseComponent implements OnInit {
           this.temperatureLow = value < TEMPERATURE_LOW;
 
           if (this.temperatureLow) {
-            const notifyRequest: NotifyUserRequest = {
-              _id: this.dashboard._id,
-            };
-            this.worker.notifyUser(notifyRequest).catch((err) => {
-              console.error(
-                'Notify-User-Low-Conditions-Exception: Failed to notify user via email.',
-                err
+            this.worker.manageNotifications(
+              this.dashboard._id,
+              this.dashboard.model.name
+            );
+          } else {
+            if (this.menuForm.get('water').value >= WATER_LOW) {
+              this.worker.manageNotifications(
+                this.dashboard._id,
+                this.dashboard.model.name,
+                true
               );
-            });
+            }
           }
         }
       })

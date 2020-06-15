@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Tabs } from 'src/app/models/worker';
-import { ToastrService } from 'ngx-toastr';
+import { WorkerService } from 'src/app/services/users/worker.service';
 
 @Component({
   selector: 'app-worker-dashboard',
@@ -12,7 +12,13 @@ export class WorkerDashboardComponent implements OnInit {
   activeTabSelect: boolean[] = [true, false, false, false];
   tabs: Tabs[] = [Tabs.HOME, Tabs.ORDERS, Tabs.STORE, Tabs.CREATE];
 
-  constructor(private router: Router, private route: ActivatedRoute) {}
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute,
+    private worker: WorkerService
+  ) {
+    worker.loadNotifications();
+  }
 
   ngOnInit(): void {
     this.router.navigate([`${Tabs.HOME}`], { relativeTo: this.route });
