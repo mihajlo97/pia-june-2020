@@ -7,6 +7,10 @@ const WATER_DEFAULT = 200;
 const TEMPERATURE_DEFAULT = 18.0;
 const WATER_LOW = 75;
 const TEMPERATURE_LOW = 12;
+const WATER_MIN = 0;
+const WATER_MAX = 1000;
+const TEMP_MIN = -20;
+const TEMP_MAX = 50;
 
 //[DB-COLLECTIONS]
 const Hothouse = mongoose.model("Hothouses", worker.HothouseSchema);
@@ -347,8 +351,6 @@ exports.getHothouseDashboardData = async (req, res) => {
 
     //structure response
     response.hothouseControl = {
-      capacity: hothouse.capacity,
-      occupiedSpots: hothouse.occupiedSpots,
       waterAmount: hothouse.waterAmount,
       temperature: hothouse.temperature,
       conditionsLastUpdatedOn: hothouse.conditionsLastUpdatedOn,
@@ -356,6 +358,7 @@ exports.getHothouseDashboardData = async (req, res) => {
     response.hothouseSpots = hothouse.spots;
     response.warehouseItems = warehouse.items;
     response.seedlings = seedlings;
+    response.name = hothouse.name;
 
     console.info(
       "[POST][RES]: @api/worker/hothouse/dashboard\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
@@ -604,7 +607,7 @@ exports.updateHothouse = async (req, res) => {
   let response = { success: true };
 
   //handle bad request
-  if (!req.body._id) {
+  if (!req.body._id || !req.body.controls) {
     console.info(
       "[POST][RES]: @api/worker/hothouse/update\nAPI-Call-Result: 400.\nResult-Origin: Request params.\nResponse:\n",
       response
@@ -620,9 +623,12 @@ exports.updateHothouse = async (req, res) => {
 
     if (req.body.hasOwnProperty("controls")) {
       if (req.body.controls.hasOwnProperty("waterAmount")) {
-        if (req.body.controls.waterAmount < 0) {
+        if (
+          req.body.controls.waterAmount < WATER_MIN ||
+          req.body.controls.waterAmount > WATER_MAX
+        ) {
           throw new Error(
-            "Out-Of-Bounds-Value-Exception: Water amount must be nonnegative."
+            "Out-Of-Bounds-Value-Exception: Water amount out of bounds."
           );
         }
         hothouse.waterAmount = req.body.controls.waterAmount;
@@ -630,8 +636,8 @@ exports.updateHothouse = async (req, res) => {
 
       if (req.body.controls.hasOwnProperty("temperature")) {
         if (
-          req.body.controls.temperature < -20 ||
-          req.body.controls.temperature > 50
+          req.body.controls.temperature < TEMP_MIN ||
+          req.body.controls.temperature > TEMP_MAX
         ) {
           throw new Error(
             "Out-Of-Bounds-Value-Exception: Temperature out of range."
@@ -640,7 +646,8 @@ exports.updateHothouse = async (req, res) => {
         hothouse.temperature = req.body.controls.temperature;
       }
 
-      hothouse.conditionsLastUpdatedOn = new Date();
+      hothouse.conditionsLastUpdatedOn =
+        req.body.controls.conditionsLastUpdatedOn;
       const onSaveHothouse = await hothouse.save();
       if (!onSaveHothouse) {
         throw new Error("On-Save-Exception: Failed to save the document.");
