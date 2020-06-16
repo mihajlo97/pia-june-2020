@@ -191,3 +191,23 @@ export interface LowConditionNotification {
 export interface EmailNotificationRegistry {
   hothouseID: string;
 }
+
+export interface ProductItem {
+  _id: string;
+  name: string;
+  manufacturer: string;
+  type: WarehouseItemType;
+  unitPrice: number;
+  quantity: number;
+  available: boolean;
+  daysToGrow?: number;
+  accelerateGrowthBy?: number;
+  comments: ProductComment[];
+}
+
+export interface ProductComment {
+  _id: string;
+  username: string;
+  rating: string;
+  comment: string;
+}

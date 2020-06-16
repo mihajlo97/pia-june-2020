@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const nodemailer = require("nodemailer");
 const worker = require("../models/worker");
+const product = require("../models/product");
 const users = require("../models/users");
 
 const WATER_DEFAULT = 200;
@@ -20,6 +21,11 @@ const Warehouse = mongoose.model("Warehouses", worker.WarehouseSchema);
 const WarehouseItem = mongoose.model(
   "WarehouseItems",
   worker.WarehouseItemSchema
+);
+const Product = mongoose.model("Products", product.ProductSchema);
+const ProductComment = mongoose.model(
+  "ProductComments",
+  product.ProductCommentSchema
 );
 const Users = mongoose.model("Users", users.UserSchema);
 
@@ -755,5 +761,58 @@ exports.hothouseLowConditionsNotify = async (req, res) => {
       err
     );
     res.status(500).json(response);
+  }
+};
+
+//GET @api/worker/store
+exports.getStoreProducts = async (req, res) => {
+  //setup response stream as array of JSON objects
+  res.set("Content-Type", "application/json");
+  res.write("[");
+
+  let productItem = {};
+
+  try {
+    let cursor = Product.find().cursor();
+    let doc = await cursor.next();
+    let docNext;
+
+    while (doc != null) {
+      docNext = await cursor.next();
+      if (doc) {
+        productItem._id = doc._id;
+        productItem.name = doc.name;
+        productItem.manufacturer = doc.manufacturer;
+        productItem.type = doc.type;
+        productItem.unitPrice = doc.unitPrice;
+        productItem.quantity = doc.quantity;
+        productItem.available = doc.available;
+        productItem.comments = doc.comments;
+
+        if (doc.hasOwnProperty("daysToGrow")) {
+          productItem.daysToGrow = doc.daysToGrow;
+        }
+        if (doc.hasOwnProperty("accelerateGrowthBy")) {
+          productItem.accelerateGrowthBy = doc.accelerateGrowthBy;
+        }
+
+        res.write(JSON.stringify(productItem));
+      }
+      if (docNext) {
+        res.write(",");
+      }
+      doc = docNext;
+    }
+
+    console.info(
+      "[GET][RES]: @api/worker/store\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse: Stream-Write-OK."
+    );
+    res.end("]");
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/worker/store\nDatabase-Query-Exception: Query call failed.\nQuery: Retrieving all store products.\nError-Log:\n",
+      err
+    );
+    res.status(500).end("{}]");
   }
 };

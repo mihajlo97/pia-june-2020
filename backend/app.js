@@ -214,5 +214,11 @@ app.post(
   worker.hothouseLowConditionsNotify
 );
 
+app.get(
+  `${workerPath}/store`,
+  worker.checkWorkerPermission,
+  worker.getStoreProducts
+);
+
 //<====[TESTING]====>
 app.get("/test/add-admin", dbTest.addMasterAdmin);

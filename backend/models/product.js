@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-exports.PRODUCTS_COLLECTION = "Products";
-exports.PRODUCT_COMMENTS_COLLECTION = "ProductComments";
+const PRODUCTS_COLLECTION = "Products";
+const PRODUCT_COMMENTS_COLLECTION = "ProductComments";
 
 exports.ProductCommentSchema = new Schema(
   {

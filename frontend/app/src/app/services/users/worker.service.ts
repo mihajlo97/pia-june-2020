@@ -18,6 +18,7 @@ import {
   NotifyUserResponse,
   LowConditionNotification,
   EmailNotificationRegistry,
+  ProductItem,
 } from 'src/app/models/worker';
 import { Observable } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
@@ -233,6 +234,13 @@ export class WorkerService {
     localStorage.setItem(
       this._EMAIL_NOTIFICATIONS_KEY,
       JSON.stringify(this._emailNotifications)
+    );
+  }
+
+  getProducts(): Observable<ProductItem[]> {
+    return this.http.get<ProductItem[]>(
+      `${this._workerAPI}/store`,
+      this._httpOptions
     );
   }
 }

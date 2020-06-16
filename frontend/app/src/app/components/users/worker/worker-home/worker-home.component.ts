@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { WorkerService } from 'src/app/services/users/worker.service';
-import { Observable, Subscription } from 'rxjs';
+import { Observable } from 'rxjs';
 import {
   HothouseItem,
   UPDATE_CONDITIONS_EVERY_MILIS,
@@ -21,7 +21,6 @@ import { map } from 'rxjs/operators';
 })
 export class WorkerHomeComponent implements OnInit {
   itemStream$: Observable<HothouseItem[]>;
-  itemSubscription: Subscription;
 
   constructor(
     private router: Router,
