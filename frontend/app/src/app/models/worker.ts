@@ -208,6 +208,13 @@ export interface ProductItem {
 export interface ProductComment {
   _id: string;
   username: string;
-  rating: string;
+  rating: number;
   comment: string;
+}
+
+export interface CartItem {
+  name: string;
+  manufacturer: string;
+  price: number;
+  quantity: number;
 }

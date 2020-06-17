@@ -1,10 +1,12 @@
 <h5>Online store</h5>
 <div class="d-flex my-3">
-  <button type="button" class="btn btn-success" (click)="confirmOrder()">
-    Order
-  </button>
-  <button type="button" class="btn btn-primary ml-2" (click)="viewCart()">
-    Open cart
+  <button
+    type="button"
+    class="btn btn-primary"
+    data-toggle="modal"
+    data-target="#viewCartModal"
+  >
+    Checkout
   </button>
 </div>
 <div class="table-responsive">
@@ -29,7 +31,7 @@
       >
         <th scope="row" class="align-middle">{{ id + 1 }}</th>
         <td class="align-middle">{{ item?.name }}</td>
-        <td class="align-middle">{{ item?.type }}</td>
+        <td class="align-middle">{{ item?.type | titlecase }}</td>
         <td class="align-middle">{{ item?.manufacturer }}</td>
         <td class="align-middle">{{ item?.quantity }}</td>
         <td class="align-middle">{{ item?.unitPrice / 100 }}</td>
@@ -37,17 +39,12 @@
           <div *ngIf="item.available">On sale</div>
           <div *ngIf="!item.available">Not available</div>
         </td>
-        <td class="align-middle">
-          <div *ngIf="item.comments.length === 0">No ratings</div>
-          <div *ngIf="item.comments.length > 0">
-            {{ averageRating(item.comments) }}
-          </div>
-        </td>
+        <td class="align-middle">{{ showAverageRating(item?.comments) }}</td>
         <td class="align-middle">
           <button
             type="button"
             class="btn btn-outline-primary my-1 mx-1"
-            (click)="addToCart(item)"
+            (click)="openAddToCartDialog(item)"
             [disabled]="!item.available"
           >
             Add to cart
@@ -63,4 +60,197 @@
       </tr>
     </tbody>
   </table>
+</div>
+
+<!--CART-MODAL-->
+<div
+  class="modal fade"
+  id="viewCartModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="viewCartModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="viewCartModalLabel">Your cart</h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th scope="col" class="align-middle">#</th>
+              <th scope="col" class="align-middle">Name</th>
+              <th scope="col" class="align-middle">Manufacturer</th>
+              <th scope="col" class="align-middle">Quantity</th>
+              <th scope="col" class="align-middle">Price (€)</th>
+              <th scope="col" class="align-middle">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let cartItem of cart; let cartItemId = index">
+              <th scope="row" class="align-middle">{{ cartItemId + 1 }}</th>
+              <td class="align-middle">{{ cartItem?.name }}</td>
+              <td class="align-middle">{{ cartItem?.manufacturer }}</td>
+              <td class="align-middle">{{ cartItem?.quantity }}</td>
+              <td class="align-middle">{{ cartItem?.price / 100 }}</td>
+              <td class="align-middle">
+                <button
+                  type="button"
+                  class="btn btn-outline-danger"
+                  (click)="removeFromCart(cartItemId)"
+                >
+                  Remove
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="mt-3">
+          <span
+            ><strong>Total billing: </strong
+            >{{ calculateBilling() / 100 }}€</span
+          >
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-success"
+          (click)="confirmOrder()"
+          [disabled]="calculateBilling() === 0"
+        >
+          Order
+        </button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--ADD-TO-CART-MODAL-->
+<div
+  class="modal fade"
+  id="addToCartModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="addToCartModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addToCartModalLabel">Add to cart</h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Name: </strong><br />{{ selectedProduct?.name }}</p>
+        <p>
+          <strong>Manufacturer: </strong><br />{{
+            selectedProduct?.manufacturer
+          }}
+        </p>
+        <p>
+          <strong>Price per unit: </strong><br />{{
+            selectedProduct?.unitPrice / 100
+          }}€
+        </p>
+        <form [formGroup]="inputForm">
+          <div class="form-group">
+            <label for="quantity"><strong>Order quantity: </strong></label>
+            <input
+              type="number"
+              id="quantity"
+              min="0"
+              [max]="selectedProduct.quantity"
+              class="form-control form-control-sm"
+              [class.is-invalid]="!validateQuantity()"
+              style="width: 7rem;"
+              formControlName="quantity"
+            />
+          </div>
+        </form>
+        <p>
+          <strong>Total billing: </strong><br />{{
+            (selectedProduct?.unitPrice * inputForm.value.quantity) / 100
+          }}€
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-primary"
+          data-dismiss="modal"
+          (click)="addToCart()"
+          [disabled]="!validateQuantity()"
+        >
+          Add
+        </button>
+        <button
+          type="button"
+          class="btn btn-secondary"
+          data-dismiss="modal"
+          (click)="cancelAddingToCart()"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--ORDER-RESULT-MODAL-->
+<div
+  class="modal fade"
+  id="orderResultModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="orderResultModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="orderResultModalLabel">Finalize order</h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div *ngIf="orderSuccess">Your order has been successfully made.</div>
+        <div *ngIf="!orderSuccess" class="text-danger">
+          The server has encountered an error while processing your order.
+          Please try again.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">
+          Ok
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
