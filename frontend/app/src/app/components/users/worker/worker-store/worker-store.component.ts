@@ -3,6 +3,8 @@ import { Observable } from 'rxjs';
 import { ProductItem, ProductComment, CartItem } from 'src/app/models/worker';
 import { WorkerService } from 'src/app/services/users/worker.service';
 import { FormBuilder, FormGroup } from '@angular/forms';
+import { map } from 'rxjs/operators';
+import { AuthenticationService } from 'src/app/services/authentication.service';
 
 //use jQuery
 declare var $: any;
@@ -15,30 +17,36 @@ declare var $: any;
 export class WorkerStoreComponent implements OnInit {
   itemStream$: Observable<ProductItem[]>;
   selectedProduct: ProductItem = {} as ProductItem;
-  cart: CartItem[] = [
-    {
-      name: 'Test 1',
-      manufacturer: 'Testers',
-      price: 4000,
-      quantity: 20,
-    },
-    {
-      name: 'Test 2',
-      manufacturer: 'Other testers',
-      price: 6500,
-      quantity: 32,
-    },
-  ];
+  cart: CartItem[] = [];
 
   orderSuccess: boolean = true;
   inputForm: FormGroup;
+  loggedInUser: string;
 
-  constructor(private worker: WorkerService, private fb: FormBuilder) {
-    this.itemStream$ = worker.getProducts();
+  constructor(
+    private worker: WorkerService,
+    private fb: FormBuilder,
+    private auth: AuthenticationService
+  ) {
+    this.itemStream$ = worker.getProducts().pipe(
+      map((items, index) => {
+        items.forEach((item, itemIndex) => {
+          item.comments.forEach((comment, commentIndex) => {
+            items[itemIndex].comments[commentIndex].commentedOn = new Date(
+              comment.commentedOn
+            );
+          });
+        });
+        return items;
+      })
+    );
     this.inputForm = fb.group({
       quantity: [1],
+      rating: [1],
+      comment: [''],
     });
     this.selectedProduct.quantity = 1;
+    this.loggedInUser = auth.getLoggedInUser();
   }
 
   ngOnInit(): void {}
@@ -76,10 +84,6 @@ export class WorkerStoreComponent implements OnInit {
     );
   }
 
-  cancelAddingToCart(): void {
-    this.inputForm.get('quantity').setValue(1);
-  }
-
   //user actions
   addToCart(): void {
     this.cart.push({
@@ -103,10 +107,75 @@ export class WorkerStoreComponent implements OnInit {
 
   openAddToCartDialog(product: ProductItem): void {
     this.selectedProduct = product;
-    $('#addToCartModal').modal('show');
+    //$('#addToCartModal').modal('show');
+  }
+
+  cancelAddingToCart(): void {
+    this.inputForm.get('quantity').setValue(1);
   }
 
   viewDetails(product: ProductItem): void {
     this.selectedProduct = product;
+
+    const index = this.selectedProduct.comments.findIndex(
+      (comment) => comment.username === this.loggedInUser
+    );
+
+    if (index >= 0) {
+      this.inputForm
+        .get('comment')
+        .setValue(this.selectedProduct.comments[index].comment);
+      this.inputForm
+        .get('rating')
+        .setValue(this.selectedProduct.comments[index].rating);
+    } else {
+      this.inputForm.get('comment').setValue('');
+      this.inputForm.get('rating').setValue(1);
+    }
+
+    this.selectedProduct.comments.sort((a, b) => {
+      const aTime = a.commentedOn.getTime();
+      const bTime = b.commentedOn.getTime();
+
+      if (aTime === bTime) {
+        return 0;
+      }
+
+      return aTime < bTime ? 1 : -1;
+    });
+  }
+
+  saveUserFeedback(): void {
+    const index = this.selectedProduct.comments.findIndex(
+      (comment) => comment.username === this.loggedInUser
+    );
+
+    if (index >= 0) {
+      this.selectedProduct.comments[index].rating = parseInt(
+        this.inputForm.value.rating
+      );
+      this.selectedProduct.comments[
+        index
+      ].comment = this.inputForm.value.comment;
+      this.selectedProduct.comments[index].commentedOn = new Date();
+    } else {
+      this.selectedProduct.comments.push({
+        username: this.loggedInUser,
+        rating: parseInt(this.inputForm.value.rating),
+        comment: this.inputForm.value.comment,
+        commentedOn: new Date(),
+      });
+    }
+
+    this.selectedProduct.comments.sort((a, b) => {
+      const aTime = a.commentedOn.getTime();
+      const bTime = b.commentedOn.getTime();
+
+      if (aTime === bTime) {
+        return 0;
+      }
+
+      return aTime < bTime ? 1 : -1;
+    });
   }
 }

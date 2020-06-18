@@ -206,10 +206,11 @@ export interface ProductItem {
 }
 
 export interface ProductComment {
-  _id: string;
+  _id?: string;
   username: string;
   rating: number;
   comment: string;
+  commentedOn: Date;
 }
 
 export interface CartItem {

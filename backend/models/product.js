@@ -4,6 +4,9 @@ const Schema = mongoose.Schema;
 const PRODUCTS_COLLECTION = "Products";
 const PRODUCT_COMMENTS_COLLECTION = "ProductComments";
 
+exports.PRODUCTS_COLLECTION_KEY = PRODUCTS_COLLECTION;
+exports.PRODUCT_COMMENTS_COLLECTION_KEY = PRODUCT_COMMENTS_COLLECTION;
+
 exports.ProductCommentSchema = new Schema(
   {
     username: {
@@ -18,6 +21,10 @@ exports.ProductCommentSchema = new Schema(
     },
     comment: {
       type: String,
+      required: true,
+    },
+    commentedOn: {
+      type: Date,
       required: true,
     },
   },

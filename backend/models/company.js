@@ -11,7 +11,7 @@ exports.OrderItemSchema = new Schema(
     product: {
       type: Schema.Types.ObjectId,
       required: true,
-      path: product.PRODUCTS_COLLECTION,
+      path: product.PRODUCTS_COLLECTION_KEY,
     },
     quantity: {
       type: Number,

@@ -45,6 +45,8 @@
             type="button"
             class="btn btn-outline-primary my-1 mx-1"
             (click)="openAddToCartDialog(item)"
+            data-toggle="modal"
+            data-target="#addToCartModal"
             [disabled]="!item.available"
           >
             Add to cart
@@ -52,6 +54,8 @@
           <button
             type="button"
             class="btn btn-outline-secondary my-1 mx-1"
+            data-toggle="modal"
+            data-target="#detailsModal"
             (click)="viewDetails(item)"
           >
             Details
@@ -249,6 +253,117 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-primary" data-dismiss="modal">
           Ok
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--PRODUCT-DETAILS-MODAL-->
+<div
+  class="modal fade"
+  id="detailsModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="detailsModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="detailsModalLabel">Product details</h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>
+          <strong>Name: </strong>
+          <br />{{ selectedProduct?.name }}
+        </p>
+        <p>
+          <strong>Manufacturer: </strong>
+          <br />{{ selectedProduct?.manufacturer }}
+        </p>
+        <p>
+          <strong>Type: </strong>
+          <br />{{ selectedProduct?.type | titlecase }}
+        </p>
+        <div *ngIf="selectedProduct?.daysToGrow">
+          <p>
+            <strong>Growth duration: </strong>
+            <br />{{ selectedProduct?.daysToGrow }} days
+          </p>
+        </div>
+        <div *ngIf="selectedProduct?.accelerateGrowthBy">
+          <p>
+            <strong>Acccelerates growth by: </strong>
+            <br />{{ selectedProduct?.accelerateGrowthBy }} days
+          </p>
+        </div>
+        <hr />
+        <h5>Your feedback:</h5>
+        <form [formGroup]="inputForm">
+          <div class="form-group">
+            <label for="userRating">Rating:</label>
+            <select
+              class="form-control form-control-sm"
+              style="width: 7rem;"
+              formControlName="rating"
+            >
+              <option *ngFor="let value of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]">{{
+                value
+              }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="userComment">Comment:</label>
+            <textarea
+              class="form-control"
+              id="userComment"
+              formControlName="comment"
+              rows="3"
+              placeholder="Your comment..."
+            ></textarea>
+          </div>
+          <button
+            type="button"
+            class="btn btn-primary"
+            (click)="saveUserFeedback()"
+            [disabled]="inputForm.value.comment === ''"
+          >
+            Save
+          </button>
+        </form>
+        <hr />
+        <h5>Comments:</h5>
+        <div *ngIf="selectedProduct?.comments?.length === 0">
+          Be the first to give feedback on this product.
+        </div>
+        <ul
+          *ngFor="let commentItem of selectedProduct?.comments"
+          class="list-group list-group-flush"
+        >
+          <li class="list-group-item py-2">
+            <div class="d-flex">
+              <strong>{{ commentItem?.username }}:</strong>
+              <span class="font-weight-light ml-auto">{{
+                commentItem?.commentedOn | date: "medium"
+              }}</span>
+            </div>
+            <span>Rated {{ commentItem?.rating }} out of 10.</span>
+            <p>"{{ commentItem?.comment }}"</p>
+          </li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          Close
         </button>
       </div>
     </div>

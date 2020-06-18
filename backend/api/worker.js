@@ -789,10 +789,10 @@ exports.getStoreProducts = async (req, res) => {
         productItem.available = doc.available;
         productItem.comments = doc.comments;
 
-        if (doc.hasOwnProperty("daysToGrow")) {
+        if ("daysToGrow" in doc) {
           productItem.daysToGrow = doc.daysToGrow;
         }
-        if (doc.hasOwnProperty("accelerateGrowthBy")) {
+        if ("accelerateGrowthBy" in doc) {
           productItem.accelerateGrowthBy = doc.accelerateGrowthBy;
         }
 
