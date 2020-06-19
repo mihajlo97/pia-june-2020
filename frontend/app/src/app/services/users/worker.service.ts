@@ -19,6 +19,12 @@ import {
   LowConditionNotification,
   EmailNotificationRegistry,
   ProductItem,
+  ConfirmOrderRequest,
+  ConfirmOrderResponse,
+  CheckOrderHistoryRequest,
+  CheckOrderHistoryResponse,
+  SaveCommentRequest,
+  SaveCommentResponse,
 } from 'src/app/models/worker';
 import { Observable } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
@@ -242,5 +248,37 @@ export class WorkerService {
       `${this._workerAPI}/store`,
       this._httpOptions
     );
+  }
+
+  confirmOrder(req: ConfirmOrderRequest): Promise<ConfirmOrderResponse> {
+    return this.http
+      .post<ConfirmOrderResponse>(
+        `${this._workerAPI}/store/order`,
+        req,
+        this._httpOptions
+      )
+      .toPromise();
+  }
+
+  checkOrderHistory(
+    req: CheckOrderHistoryRequest
+  ): Promise<CheckOrderHistoryResponse> {
+    return this.http
+      .post<CheckOrderHistoryResponse>(
+        `${this._workerAPI}/store/check-order-history`,
+        req,
+        this._httpOptions
+      )
+      .toPromise();
+  }
+
+  updateProductComments(req: SaveCommentRequest): Promise<SaveCommentResponse> {
+    return this.http
+      .post<SaveCommentResponse>(
+        `${this._workerAPI}/store/product/comments`,
+        req,
+        this._httpOptions
+      )
+      .toPromise();
   }
 }

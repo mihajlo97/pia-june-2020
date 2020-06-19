@@ -1,7 +1,9 @@
 const mongoose = require("mongoose");
 const nodemailer = require("nodemailer");
+const { v4: uuidv4 } = require("uuid");
 const worker = require("../models/worker");
 const product = require("../models/product");
+const company = require("../models/company");
 const users = require("../models/users");
 
 const WATER_DEFAULT = 200;
@@ -26,6 +28,11 @@ const Product = mongoose.model("Products", product.ProductSchema);
 const ProductComment = mongoose.model(
   "ProductComments",
   product.ProductCommentSchema
+);
+const Order = mongoose.model("Orders", company.OrderSchema);
+const DeliveryAgent = mongoose.model(
+  "DeliveryAgents",
+  company.DeliveryAgentSchema
 );
 const Users = mongoose.model("Users", users.UserSchema);
 
@@ -814,5 +821,168 @@ exports.getStoreProducts = async (req, res) => {
       err
     );
     res.status(500).end("{}]");
+  }
+};
+
+//POST @api/worker/store/order
+exports.makeNewOrder = async (req, res) => {
+  let response = { success: false };
+
+  if (!req.body.items) {
+    console.info(
+      "[POST][RES]: @api/worker/store/order\nAPI-Call-Result: 400.\nResult-Origin: Request params.\nResponse:\n",
+      response
+    );
+    return res.status(400).json(response);
+  }
+
+  try {
+    let orderItems = [];
+    const groupID = uuidv4();
+
+    req.body.items.forEach((item) => {
+      orderItems.push({
+        manufacturer: item.manufacturer,
+        orderedBy: item.orderedBy,
+        orderedOn: item.orderedOn,
+        product: item.productID,
+        quantity: item.quantity,
+        groupOrderId: groupID,
+        accepted: false,
+        status: "pending",
+      });
+    });
+
+    const updated = await Order.insertMany(orderItems);
+    if (updated.length !== req.body.items.length) {
+      throw new Error("On-Save-Exception: Failed to save the documents.");
+    }
+
+    for (let i = 0; i < req.body.items.length; i++) {
+      const item = req.body.items[i];
+      const doc = await Product.findById(item.productID).exec();
+      if (!doc) {
+        throw new Error("Item-Not-Found-Exception: Product.");
+      }
+
+      doc.quantity = doc.quantity - item.quantity;
+      const saved = await doc.save();
+      if (!saved) {
+        throw new Error("On-Save-Exception: Failed to save the document.");
+      }
+    }
+
+    response.success = true;
+    console.info(
+      "[POST][RES]: @api/worker/store/order\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
+      response
+    );
+    return res.status(200).json(response);
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/worker/store/order\nDatabase-Query-Exception: Query call failed.\nQuery: Adding new order.\nError-Log:\n",
+      err
+    );
+    res.status(500).end(response);
+  }
+};
+
+//POST @api/worker/store/check-order-history
+exports.checkOrderHistory = async (req, res) => {
+  let response = {};
+
+  if (!req.body.username || !req.body.productID) {
+    console.info(
+      "[POST][RES]: @api/worker/store/check-order-history\nAPI-Call-Result: 400.\nResult-Origin: Request params.\nResponse:\n",
+      response
+    );
+    return res.status(400).json(response);
+  }
+
+  try {
+    const doc = await Order.findOne({
+      orderedBy: req.body.username,
+      product: req.body.productID,
+    }).exec();
+
+    response.previouslyOrdered = doc !== undefined && doc !== null;
+    console.info(
+      "[POST][RES]: @api/worker/store/order/check-order-history\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
+      response
+    );
+    return res.status(200).json(response);
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/worker/store/check-order-history\nDatabase-Query-Exception: Query call failed.\nQuery: Retrieving orders.\nError-Log:\n",
+      err
+    );
+    res.status(500).end(response);
+  }
+};
+
+//POST @api/worker/store/product/comments
+exports.updateProductComments = async (req, res) => {
+  let response = { success: false };
+
+  if (!req.body.productID || !req.body.comment) {
+    console.info(
+      "[POST][RES]: @api/worker/store/product/comments\nAPI-Call-Result: 400.\nResult-Origin: Request params.\nResponse:\n",
+      response
+    );
+    return res.status(400).json(response);
+  }
+
+  try {
+    const product = await Product.findById(req.body.productID).exec();
+    if (!product) {
+      throw new Error("Item-Not-Found-Exception: Product.");
+    }
+
+    if (
+      req.body.comment.username === "" ||
+      req.body.comment.comment === "" ||
+      req.body.comment.rating < 1 ||
+      req.body.comment.rating > 10 ||
+      !req.body.comment.commentedOn
+    ) {
+      throw new Error(
+        "Invalid-Arguements-Exception: Invalid comment object values."
+      );
+    }
+
+    const index = product.comments.findIndex(
+      (item) => item.username === req.body.comment.username
+    );
+    if (index < 0) {
+      product.comments.push({
+        _id: mongoose.Types.ObjectId(),
+        username: req.body.comment.username,
+        rating: req.body.comment.rating,
+        comment: req.body.comment.comment,
+        commentedOn: req.body.comment.commentedOn,
+      });
+    } else {
+      product.comments[index].rating = req.body.comment.rating;
+      product.comments[index].comment = req.body.comment.comment;
+      product.comments[index].commentedOn = req.body.comment.commentedOn;
+    }
+
+    const doc = await product.save();
+    if (!doc) {
+      throw new Error("On-Save-Exception: Failed to save the document.");
+    }
+
+    response.success = true;
+    console.info(
+      "[POST][RES]: @api/worker/store/product/comments\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
+      response
+    );
+    return res.status(200).json(response);
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/worker/store/product/comments\nDatabase-Query-Exception: Query call failed.\nQuery: Updating product comments.\nError-Log:\n",
+      err
+    );
+    res.status(500).end(response);
   }
 };

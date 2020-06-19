@@ -3,24 +3,7 @@ const product = require("./product");
 const Schema = mongoose.Schema;
 
 const ORDERS_COLLECTION = "Orders";
-const ORDER_ITEMS_COLLECTION = "OrderItems";
 const DELIVERY_AGENTS_COLLECTION = "DeliveryAgents";
-
-exports.OrderItemSchema = new Schema(
-  {
-    product: {
-      type: Schema.Types.ObjectId,
-      required: true,
-      path: product.PRODUCTS_COLLECTION_KEY,
-    },
-    quantity: {
-      type: Number,
-      required: true,
-      min: 1,
-    },
-  },
-  { collection: ORDER_ITEMS_COLLECTION }
-);
 
 exports.OrderSchema = new Schema(
   {
@@ -38,7 +21,20 @@ exports.OrderSchema = new Schema(
       type: Date,
       required: true,
     },
-    products: [this.OrderItemSchema],
+    product: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      path: product.PRODUCTS_COLLECTION_KEY,
+    },
+    quantity: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+    groupOrderId: {
+      type: String,
+      required: true,
+    },
     accepted: {
       type: Boolean,
       required: true,
@@ -54,11 +50,13 @@ exports.OrderSchema = new Schema(
 
 exports.DeliveryAgentSchema = new Schema(
   {
-    order: {
-      type: Schema.Types.ObjectId,
-      required: true,
-      path: ORDERS_COLLECTION,
-    },
+    orders: [
+      {
+        type: Schema.Types.ObjectId,
+        required: false,
+        path: ORDERS_COLLECTION,
+      },
+    ],
     //binds to worker's hothouse location
     deliverTo: {
       type: String,

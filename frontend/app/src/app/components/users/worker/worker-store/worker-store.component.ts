@@ -1,6 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
-import { ProductItem, ProductComment, CartItem } from 'src/app/models/worker';
+import {
+  ProductItem,
+  ProductComment,
+  CartItem,
+  ConfirmOrderRequest,
+  ConfirmOrderResponse,
+  CheckOrderHistoryRequest,
+  CheckOrderHistoryResponse,
+  SaveCommentRequest,
+  SaveCommentResponse,
+} from 'src/app/models/worker';
 import { WorkerService } from 'src/app/services/users/worker.service';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { map } from 'rxjs/operators';
@@ -17,29 +27,20 @@ declare var $: any;
 export class WorkerStoreComponent implements OnInit {
   itemStream$: Observable<ProductItem[]>;
   selectedProduct: ProductItem = {} as ProductItem;
+  inputForm: FormGroup;
+  loggedInUser: string;
   cart: CartItem[] = [];
 
   orderSuccess: boolean = true;
-  inputForm: FormGroup;
-  loggedInUser: string;
+  feedbackDisabled: boolean = false;
+  saveCommentSuccess: boolean = true;
 
   constructor(
     private worker: WorkerService,
     private fb: FormBuilder,
     private auth: AuthenticationService
   ) {
-    this.itemStream$ = worker.getProducts().pipe(
-      map((items, index) => {
-        items.forEach((item, itemIndex) => {
-          item.comments.forEach((comment, commentIndex) => {
-            items[itemIndex].comments[commentIndex].commentedOn = new Date(
-              comment.commentedOn
-            );
-          });
-        });
-        return items;
-      })
-    );
+    this.itemStream$ = this.getProducts();
     this.inputForm = fb.group({
       quantity: [1],
       rating: [1],
@@ -52,6 +53,21 @@ export class WorkerStoreComponent implements OnInit {
   ngOnInit(): void {}
 
   //helper methods
+  getProducts(): Observable<ProductItem[]> {
+    return this.worker.getProducts().pipe(
+      map((items, index) => {
+        items.forEach((item, itemIndex) => {
+          item.comments.forEach((comment, commentIndex) => {
+            items[itemIndex].comments[commentIndex].commentedOn = new Date(
+              comment.commentedOn
+            );
+          });
+        });
+        return items;
+      })
+    );
+  }
+
   caluclateAverageRating(comments: ProductComment[]): number {
     if (!comments || comments === []) {
       return -1;
@@ -84,9 +100,39 @@ export class WorkerStoreComponent implements OnInit {
     );
   }
 
+  disableSaveComment(): boolean {
+    if (this.feedbackDisabled) {
+      return true;
+    }
+
+    const comment = this.inputForm.get('comment');
+    const rating = this.inputForm.get('rating');
+
+    if (rating.dirty && comment.value !== '') {
+      return false;
+    } else if (comment.value !== '' && comment.dirty) {
+      return false;
+    }
+
+    return true;
+  }
+
+  sortSelectedProductComments(): void {
+    this.selectedProduct.comments.sort((a, b) => {
+      const aTime = a.commentedOn.getTime();
+      const bTime = b.commentedOn.getTime();
+
+      if (aTime === bTime) {
+        return 0;
+      }
+      return aTime < bTime ? 1 : -1;
+    });
+  }
+
   //user actions
   addToCart(): void {
     this.cart.push({
+      _id: this.selectedProduct._id,
       name: this.selectedProduct.name,
       manufacturer: this.selectedProduct.manufacturer,
       quantity: this.inputForm.value.quantity,
@@ -100,14 +146,8 @@ export class WorkerStoreComponent implements OnInit {
     this.cart.splice(id, 1);
   }
 
-  confirmOrder(): void {
-    $('#viewCartModal').modal('hide');
-    $('#orderResultModal').modal('show');
-  }
-
   openAddToCartDialog(product: ProductItem): void {
     this.selectedProduct = product;
-    //$('#addToCartModal').modal('show');
   }
 
   cancelAddingToCart(): void {
@@ -116,39 +156,60 @@ export class WorkerStoreComponent implements OnInit {
 
   viewDetails(product: ProductItem): void {
     this.selectedProduct = product;
+    this.sortSelectedProductComments();
 
-    const index = this.selectedProduct.comments.findIndex(
-      (comment) => comment.username === this.loggedInUser
-    );
+    this.inputForm.get('comment').setValue('');
+    this.inputForm.get('comment').enable();
+    this.inputForm.get('rating').setValue(1);
+    this.inputForm.get('rating').enable();
 
-    if (index >= 0) {
-      this.inputForm
-        .get('comment')
-        .setValue(this.selectedProduct.comments[index].comment);
-      this.inputForm
-        .get('rating')
-        .setValue(this.selectedProduct.comments[index].rating);
-    } else {
-      this.inputForm.get('comment').setValue('');
-      this.inputForm.get('rating').setValue(1);
-    }
-
-    this.selectedProduct.comments.sort((a, b) => {
-      const aTime = a.commentedOn.getTime();
-      const bTime = b.commentedOn.getTime();
-
-      if (aTime === bTime) {
-        return 0;
-      }
-
-      return aTime < bTime ? 1 : -1;
-    });
+    const req: CheckOrderHistoryRequest = {
+      username: this.loggedInUser,
+      productID: this.selectedProduct._id,
+    };
+    this.worker
+      .checkOrderHistory(req)
+      .then((res: CheckOrderHistoryResponse) => {
+        if ('previouslyOrdered' in res) {
+          if (!res.previouslyOrdered) {
+            this.feedbackDisabled = true;
+            this.inputForm.get('comment').disable();
+            this.inputForm.get('rating').disable();
+          } else {
+            this.feedbackDisabled = false;
+            const index = this.selectedProduct.comments.findIndex(
+              (comment) => comment.username === this.loggedInUser
+            );
+            if (index >= 0) {
+              this.inputForm
+                .get('comment')
+                .setValue(this.selectedProduct.comments[index].comment);
+              this.inputForm
+                .get('rating')
+                .setValue(this.selectedProduct.comments[index].rating);
+            }
+          }
+        }
+      })
+      .catch((err) => {
+        console.error(
+          'Check-History-Exception: Failed to get a successful history check response from server.',
+          err
+        );
+        this.feedbackDisabled = true;
+      });
   }
 
   saveUserFeedback(): void {
     const index = this.selectedProduct.comments.findIndex(
       (comment) => comment.username === this.loggedInUser
     );
+    let comment: ProductComment = {
+      username: this.loggedInUser,
+      rating: parseInt(this.inputForm.value.rating),
+      comment: this.inputForm.value.comment,
+      commentedOn: new Date(),
+    };
 
     if (index >= 0) {
       this.selectedProduct.comments[index].rating = parseInt(
@@ -159,23 +220,60 @@ export class WorkerStoreComponent implements OnInit {
       ].comment = this.inputForm.value.comment;
       this.selectedProduct.comments[index].commentedOn = new Date();
     } else {
-      this.selectedProduct.comments.push({
-        username: this.loggedInUser,
-        rating: parseInt(this.inputForm.value.rating),
-        comment: this.inputForm.value.comment,
-        commentedOn: new Date(),
-      });
+      this.selectedProduct.comments.push(comment);
     }
+    this.sortSelectedProductComments();
 
-    this.selectedProduct.comments.sort((a, b) => {
-      const aTime = a.commentedOn.getTime();
-      const bTime = b.commentedOn.getTime();
+    const req: SaveCommentRequest = {
+      comment: comment,
+      productID: this.selectedProduct._id,
+    };
+    this.worker
+      .updateProductComments(req)
+      .then((res: SaveCommentResponse) => {
+        this.saveCommentSuccess = res.success;
+      })
+      .catch((err) => {
+        console.error(
+          'Confirm-Order-Exception: Server failed to process order.',
+          err
+        );
+        this.saveCommentSuccess = false;
+      });
+  }
 
-      if (aTime === bTime) {
-        return 0;
-      }
+  confirmOrder(): void {
+    let req: ConfirmOrderRequest = {
+      items: [],
+    };
+    const now = new Date();
 
-      return aTime < bTime ? 1 : -1;
+    this.cart.forEach((item) => {
+      req.items.push({
+        productID: item._id,
+        manufacturer: item.manufacturer,
+        orderedBy: this.loggedInUser,
+        orderedOn: now,
+        quantity: item.quantity,
+      });
     });
+
+    this.worker
+      .confirmOrder(req)
+      .then((res: ConfirmOrderResponse) => {
+        this.orderSuccess = res.success;
+      })
+      .catch((err) => {
+        console.error(
+          'Confirm-Order-Exception: Server failed to process order.',
+          err
+        );
+        this.orderSuccess = false;
+      })
+      .finally(() => {
+        this.itemStream$ = this.getProducts();
+        $('#viewCartModal').modal('hide');
+        $('#orderResultModal').modal('show');
+      });
   }
 }

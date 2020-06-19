@@ -37,13 +37,14 @@
         <td class="align-middle">{{ item?.unitPrice / 100 }}</td>
         <td class="align-middle">
           <div *ngIf="item.available">On sale</div>
-          <div *ngIf="!item.available">Not available</div>
+          <div *ngIf="!item.available">Not available currently</div>
         </td>
         <td class="align-middle">{{ showAverageRating(item?.comments) }}</td>
         <td class="align-middle">
           <button
             type="button"
             class="btn btn-outline-primary my-1 mx-1"
+            style="width: 7rem;"
             (click)="openAddToCartDialog(item)"
             data-toggle="modal"
             data-target="#addToCartModal"
@@ -54,6 +55,7 @@
           <button
             type="button"
             class="btn btn-outline-secondary my-1 mx-1"
+            style="width: 7rem;"
             data-toggle="modal"
             data-target="#detailsModal"
             (click)="viewDetails(item)"
@@ -78,7 +80,7 @@
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="viewCartModalLabel">Your cart</h5>
+        <h5 class="modal-title" id="viewCartModalLabel">Shopping cart</h5>
         <button
           type="button"
           class="close"
@@ -120,6 +122,9 @@
           </tbody>
         </table>
         <div class="mt-3">
+          <div *ngIf="cart.length === 0">
+            <p>There are no items in your cart currently.</p>
+          </div>
           <span
             ><strong>Total billing: </strong
             >{{ calculateBilling() / 100 }}€</span
@@ -308,6 +313,11 @@
         </div>
         <hr />
         <h5>Your feedback:</h5>
+        <div *ngIf="feedbackDisabled">
+          <p class="text-muted">
+            Product feedback is available only after initial product purchase.
+          </p>
+        </div>
         <form [formGroup]="inputForm">
           <div class="form-group">
             <label for="userRating">Rating:</label>
@@ -330,12 +340,18 @@
               rows="3"
               placeholder="Your comment..."
             ></textarea>
+            <div *ngIf="!saveCommentSuccess">
+              <p class="text-danger">
+                The server encountered an error while saving your feedback,
+                please try again.
+              </p>
+            </div>
           </div>
           <button
             type="button"
             class="btn btn-primary"
             (click)="saveUserFeedback()"
-            [disabled]="inputForm.value.comment === ''"
+            [disabled]="disableSaveComment()"
           >
             Save
           </button>

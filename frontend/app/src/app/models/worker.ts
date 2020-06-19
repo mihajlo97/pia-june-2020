@@ -206,7 +206,6 @@ export interface ProductItem {
 }
 
 export interface ProductComment {
-  _id?: string;
   username: string;
   rating: number;
   comment: string;
@@ -214,8 +213,43 @@ export interface ProductComment {
 }
 
 export interface CartItem {
+  _id: string;
   name: string;
   manufacturer: string;
   price: number;
   quantity: number;
+}
+
+export interface OrderItem {
+  productID: string;
+  manufacturer: string;
+  orderedBy: string;
+  orderedOn: Date;
+  quantity: number;
+}
+
+export interface ConfirmOrderRequest {
+  items: OrderItem[];
+}
+
+export interface ConfirmOrderResponse {
+  success: boolean;
+}
+
+export interface CheckOrderHistoryRequest {
+  username: string;
+  productID: string;
+}
+
+export interface CheckOrderHistoryResponse {
+  previouslyOrdered?: boolean;
+}
+
+export interface SaveCommentRequest {
+  comment: ProductComment;
+  productID: string;
+}
+
+export interface SaveCommentResponse {
+  success: boolean;
 }

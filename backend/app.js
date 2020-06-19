@@ -220,5 +220,23 @@ app.get(
   worker.getStoreProducts
 );
 
+app.post(
+  `${workerPath}/store/order`,
+  worker.checkWorkerPermission,
+  worker.makeNewOrder
+);
+
+app.post(
+  `${workerPath}/store/check-order-history`,
+  worker.checkWorkerPermission,
+  worker.checkOrderHistory
+);
+
+app.post(
+  `${workerPath}/store/product/comments`,
+  worker.checkWorkerPermission,
+  worker.updateProductComments
+);
+
 //<====[TESTING]====>
 app.get("/test/add-admin", dbTest.addMasterAdmin);

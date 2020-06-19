@@ -191,40 +191,7 @@ export class WorkerHothouseComponent implements OnInit {
   intervalViewRefresher(): void {
     setInterval(() => {
       this.updateConditionsMenu();
-
-      //update hothouse spots
-      const now = new Date().getTime();
-      for (let i = 0; i < this.dashboard.controls.length; i++) {
-        const control = this.dashboard.controls[i];
-
-        if (
-          control.state === SpotState.EMPTY ||
-          control.state === SpotState.DONE
-        ) {
-          continue;
-        }
-
-        //check if an empty spot is prepared for planting
-        else if (control.state === SpotState.PREPARING) {
-          if (now >= control.spot.lastOccupiedOn.getTime() + PREPARING_TIME) {
-            this.dashboard.controls[i].state = SpotState.EMPTY;
-          }
-        }
-
-        //update progress on a growing seedling
-        else if (control.state === SpotState.GROWING) {
-          if (!control.seedling.done) {
-            const progress = this.calculateProgress(control.seedling);
-            this.dashboard.controls[i].progress = progress;
-
-            if (progress === PROGRESS_MAX) {
-              if (this.updateSeedlingOnDone(control.seedling._id)) {
-                this.dashboard.controls[i].state = SpotState.DONE;
-              }
-            }
-          }
-        }
-      }
+      this.updateSeedlingStates();
     }, DASHBOARD_REFRESH_RATE);
   }
 
@@ -307,8 +274,46 @@ export class WorkerHothouseComponent implements OnInit {
         TEMPERATURE_MIN
           ? hothouseControl.temperature - compoundTemperatureDecrease
           : TEMPERATURE_MIN;
+
       this.menuForm.get('water').setValue(waterLevel);
       this.menuForm.get('temperature').setValue(temperatureLevel);
+
+      this.dashboard.model.hothouseControl.conditionsLastUpdatedOn = new Date();
+    }
+  }
+
+  updateSeedlingStates(): void {
+    const now = new Date().getTime();
+    for (let i = 0; i < this.dashboard.controls.length; i++) {
+      const control = this.dashboard.controls[i];
+
+      if (
+        control.state === SpotState.EMPTY ||
+        control.state === SpotState.DONE
+      ) {
+        continue;
+      }
+
+      //check if an empty spot is prepared for planting
+      else if (control.state === SpotState.PREPARING) {
+        if (now >= control.spot.lastOccupiedOn.getTime() + PREPARING_TIME) {
+          this.dashboard.controls[i].state = SpotState.EMPTY;
+        }
+      }
+
+      //update progress on a growing seedling
+      else if (control.state === SpotState.GROWING) {
+        if (!control.seedling.done) {
+          const progress = this.calculateProgress(control.seedling);
+          this.dashboard.controls[i].progress = progress;
+
+          if (progress === PROGRESS_MAX) {
+            if (this.updateSeedlingOnDone(control.seedling._id)) {
+              this.dashboard.controls[i].state = SpotState.DONE;
+            }
+          }
+        }
+      }
     }
   }
 
