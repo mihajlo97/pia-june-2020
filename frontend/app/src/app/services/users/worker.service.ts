@@ -25,6 +25,10 @@ import {
   CheckOrderHistoryResponse,
   SaveCommentRequest,
   SaveCommentResponse,
+  GetUndeliveredOrdersRequest,
+  OrderedItem,
+  CancelOrderRequest,
+  CancelOrderResponse,
 } from 'src/app/models/worker';
 import { Observable } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
@@ -276,6 +280,26 @@ export class WorkerService {
     return this.http
       .post<SaveCommentResponse>(
         `${this._workerAPI}/store/product/comments`,
+        req,
+        this._httpOptions
+      )
+      .toPromise();
+  }
+
+  getUndeliveredUserOrders(
+    req: GetUndeliveredOrdersRequest
+  ): Observable<OrderedItem[]> {
+    return this.http.post<OrderedItem[]>(
+      `${this._workerAPI}/orders`,
+      req,
+      this._httpOptions
+    );
+  }
+
+  cancelOrder(req: CancelOrderRequest): Promise<CancelOrderResponse> {
+    return this.http
+      .post<CancelOrderResponse>(
+        `${this._workerAPI}/orders/cancel`,
         req,
         this._httpOptions
       )

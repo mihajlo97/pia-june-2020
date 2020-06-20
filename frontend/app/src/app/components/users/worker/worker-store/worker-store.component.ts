@@ -271,6 +271,7 @@ export class WorkerStoreComponent implements OnInit {
         this.orderSuccess = false;
       })
       .finally(() => {
+        this.cart = [];
         this.itemStream$ = this.getProducts();
         $('#viewCartModal').modal('hide');
         $('#orderResultModal').modal('show');

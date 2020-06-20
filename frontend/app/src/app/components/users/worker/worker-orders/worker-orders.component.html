@@ -1,1 +1,85 @@
-<p>worker-orders works!</p>
+<h5>Your orders</h5>
+<div class="table-responsive">
+  <table class="table table-hover table-fixed">
+    <thead>
+      <tr>
+        <th scope="col" class="align-middle">Products</th>
+        <th scope="col" class="align-middle">Manufacturer</th>
+        <th scope="col" class="align-middle">Ordered on</th>
+        <th scope="col" class="align-middle">Order ID</th>
+        <th scope="col" class="align-middle">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let order of orderStream$ | async">
+        <td class="align-middle">
+          <p *ngFor="let product of order?.products; let i = index">
+            <strong>Product:</strong> "{{ product }}"
+            <br />
+            <strong>Quantity:</strong> {{ order.quantities[i] }}
+          </p>
+        </td>
+        <td class="align-middle">{{ order?.manufacturer }}</td>
+        <td class="align-middle">{{ order?.orderedOn | date: "medium" }}</td>
+        <td class="align-middle">{{ (order?.groupOrderId.split("-"))[0] }}</td>
+        <td class="align-middle">
+          <button
+            type="button"
+            class="btn btn-outline-danger"
+            style="width: 7rem;"
+            data-toggle="modal"
+            data-target="#cancelDialogModal"
+            (click)="selectOrder(order)"
+          >
+            Cancel
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!--CANCEL-ORDER-DIALOG-->
+<div
+  class="modal fade"
+  id="cancelDialogModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="cancelDialogModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="cancelDialogModalLabel">Cancel order</h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>
+          Are you sure you want to cancel your order?
+        </p>
+        <div *ngIf="!cancelSuccess">
+          <p class="text-danger">
+            Server encountered an error while atempting to cancel your order,
+            please try again.
+          </p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" (click)="cancelOrder()">
+          Cancel order
+        </button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

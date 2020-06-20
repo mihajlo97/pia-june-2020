@@ -253,3 +253,31 @@ export interface SaveCommentRequest {
 export interface SaveCommentResponse {
   success: boolean;
 }
+
+export interface GetUndeliveredOrdersRequest {
+  username: string;
+}
+
+export interface OrderedItem {
+  groupOrderId: string;
+  manufacturer: string;
+  orderedOn: Date;
+  product: string;
+  quantity: number;
+}
+
+export interface OrderedGroupItem {
+  groupOrderId: string;
+  manufacturer: string;
+  orderedOn: Date;
+  products: string[];
+  quantities: number[];
+}
+
+export interface CancelOrderRequest {
+  groupOrderId: string;
+}
+
+export interface CancelOrderResponse {
+  success: boolean;
+}

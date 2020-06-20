@@ -238,5 +238,17 @@ app.post(
   worker.updateProductComments
 );
 
+app.post(
+  `${workerPath}/orders`,
+  worker.checkWorkerPermission,
+  worker.getUndeliveredUserOrders
+);
+
+app.post(
+  `${workerPath}/orders/cancel`,
+  worker.checkWorkerPermission,
+  worker.cancelOrder
+);
+
 //<====[TESTING]====>
 app.get("/test/add-admin", dbTest.addMasterAdmin);

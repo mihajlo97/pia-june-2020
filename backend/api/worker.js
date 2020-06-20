@@ -838,9 +838,31 @@ exports.makeNewOrder = async (req, res) => {
 
   try {
     let orderItems = [];
-    const groupID = uuidv4();
+    let orderGroups = [];
+    let groupID;
 
     req.body.items.forEach((item) => {
+      if (orderGroups.length === 0) {
+        groupID = uuidv4();
+        orderGroups.push({
+          manufacturer: item.manufacturer,
+          groupOrderId: groupID,
+        });
+      } else {
+        const index = orderGroups.findIndex(
+          (group) => group.manufacturer === item.manufacturer
+        );
+        if (index >= 0) {
+          groupID = orderGroups[index].groupOrderId;
+        } else {
+          groupID = uuidv4();
+          orderGroups.push({
+            manufacturer: item.manufacturer,
+            groupOrderId: groupID,
+          });
+        }
+      }
+
       orderItems.push({
         manufacturer: item.manufacturer,
         orderedBy: item.orderedBy,
@@ -981,6 +1003,101 @@ exports.updateProductComments = async (req, res) => {
   } catch (err) {
     console.error(
       "[ERROR][DB]: @api/worker/store/product/comments\nDatabase-Query-Exception: Query call failed.\nQuery: Updating product comments.\nError-Log:\n",
+      err
+    );
+    res.status(500).end(response);
+  }
+};
+
+//POST @api/worker/orders
+exports.getUndeliveredUserOrders = async (req, res) => {
+  res.set("Content-Type", "application/json");
+  res.write("[");
+
+  if (!req.body.username) {
+    console.info(
+      "[POST][RES]: @api/worker/orders\nAPI-Call-Result: 400.\nResult-Origin: Request params.\nResponse:\n",
+      "Stream-Write-OK."
+    );
+    return res.status(400).end("]");
+  }
+
+  try {
+    let orderedItem = {};
+    let cursor = Order.find()
+      .where("orderedBy")
+      .equals(req.body.username)
+      .where("status")
+      .in(["pending", "in-transit"])
+      .cursor();
+    let doc = await cursor.next();
+    let docNext;
+
+    while (doc != null) {
+      docNext = await cursor.next();
+      if (doc) {
+        const productName = await Product.findById(doc.product).select("name");
+        orderedItem.groupOrderId = doc.groupOrderId;
+        orderedItem.manufacturer = doc.manufacturer;
+        orderedItem.orderedOn = doc.orderedOn;
+        orderedItem.product = productName.name;
+        orderedItem.quantity = doc.quantity;
+
+        res.write(JSON.stringify(orderedItem));
+      }
+      if (docNext) {
+        res.write(",");
+      }
+      doc = docNext;
+    }
+
+    console.info(
+      "[GET][RES]: @api/worker/orders\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse: Stream-Write-OK."
+    );
+    res.end("]");
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/worker/orders\nDatabase-Query-Exception: Query call failed.\nQuery: Retrieving user's orders.\nError-Log:\n",
+      err
+    );
+    res.status(500).end("{}]");
+  }
+};
+
+//POST @api/worker/orders/cancel
+exports.cancelOrder = async (req, res) => {
+  let response = { success: false };
+
+  if (!req.body.groupOrderId) {
+    console.info(
+      "[POST][RES]: @api/worker/orders/cancel\nAPI-Call-Result: 400.\nResult-Origin: Request params.\nResponse:\n",
+      response
+    );
+    return res.status(400).json(response);
+  }
+
+  try {
+    const orders = await Order.updateMany(
+      {
+        groupOrderId: req.body.groupOrderId,
+      },
+      { $set: { status: "cancelled" } }
+    ).exec();
+    if (!orders) {
+      throw new Error(
+        "Update-Documents-Exception: Failed to update the documents."
+      );
+    }
+
+    response.success = true;
+    console.info(
+      "[POST][RES]: @api/worker/orders/cancel\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
+      response
+    );
+    return res.status(200).json(response);
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/worker/orders/cancel\nDatabase-Query-Exception: Query call failed.\nQuery: Updating orders.\nError-Log:\n",
       err
     );
     res.status(500).end(response);
