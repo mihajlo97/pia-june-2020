@@ -30,6 +30,12 @@ import { WorkerStoreComponent } from './components/users/worker/worker-store/wor
 import { WorkerCreateComponent } from './components/users/worker/worker-create/worker-create.component';
 import { WorkerHothouseComponent } from './components/users/worker/worker-hothouse/worker-hothouse.component';
 import { WorkerWarehouseComponent } from './components/users/worker/worker-warehouse/worker-warehouse.component';
+import { CompanyDashboardComponent } from './components/users/company/company-dashboard/company-dashboard.component';
+import { CompanyHomeComponent } from './components/users/company/company-home/company-home.component';
+import { CompanyCatalogComponent } from './components/users/company/company-catalog/company-catalog.component';
+import { CompanyProductDetailsComponent } from './components/users/company/company-product-details/company-product-details.component';
+import { CompanyNewProductComponent } from './components/users/company/company-new-product/company-new-product.component';
+import { CompanyAnalyticsComponent } from './components/users/company/company-analytics/company-analytics.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -103,7 +109,42 @@ const routes: Routes = [
       {
         path: '',
         canActivateChild: [CompanyAuthGuard],
-        children: [],
+        children: [
+          {
+            path: 'change-password',
+            component: ChangePasswordComponent,
+          },
+          {
+            path: 'change-password-success',
+            component: ChangePasswordSuccessComponent,
+          },
+          {
+            path: 'dashboard',
+            component: CompanyDashboardComponent,
+            children: [
+              {
+                path: 'home',
+                component: CompanyHomeComponent,
+              },
+              {
+                path: 'catalog',
+                component: CompanyCatalogComponent,
+              },
+              {
+                path: 'catalog/:id',
+                component: CompanyProductDetailsComponent,
+              },
+              {
+                path: 'new-product',
+                component: CompanyNewProductComponent,
+              },
+              {
+                path: 'analytics',
+                component: CompanyAnalyticsComponent,
+              },
+            ],
+          },
+        ],
       },
     ],
   },

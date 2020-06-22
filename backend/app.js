@@ -13,6 +13,7 @@ const registration = require("./api/registration");
 const authetication = require("./api/authentication");
 const admin = require("./api/admin");
 const worker = require("./api/worker");
+const company = require("./api/company");
 
 //[CONFIG]
 const PORT = process.env.PORT || 3000;
@@ -248,6 +249,27 @@ app.post(
   `${workerPath}/orders/cancel`,
   worker.checkWorkerPermission,
   worker.cancelOrder
+);
+
+//[USER-COMPANY-MODULE]
+const companyPath = "/api/company";
+
+app.get(
+  `${companyPath}/catalog`,
+  company.checkCompanyPermission,
+  company.getCompanyCatalog
+);
+
+app.post(
+  `${companyPath}/catalog/product`,
+  company.checkCompanyPermission,
+  company.getProduct
+);
+
+app.post(
+  `${companyPath}/catalog/product/availability`,
+  company.checkCompanyPermission,
+  company.toggleProductAvailability
 );
 
 //<====[TESTING]====>

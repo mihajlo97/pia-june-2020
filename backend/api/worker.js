@@ -780,7 +780,10 @@ exports.getStoreProducts = async (req, res) => {
   let productItem = {};
 
   try {
-    let cursor = Product.find().cursor();
+    let cursor = Product.find()
+      .collation({ locale: "en" })
+      .sort("name")
+      .cursor();
     let doc = await cursor.next();
     let docNext;
 

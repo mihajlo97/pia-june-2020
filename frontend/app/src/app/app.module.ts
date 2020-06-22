@@ -50,6 +50,13 @@ import { AdminService } from './services/users/admin.service';
 import { WorkerService } from './services/users/worker.service';
 import { WorkerHothouseComponent } from './components/users/worker/worker-hothouse/worker-hothouse.component';
 import { WorkerWarehouseComponent } from './components/users/worker/worker-warehouse/worker-warehouse.component';
+import { CompanyDashboardComponent } from './components/users/company/company-dashboard/company-dashboard.component';
+import { CompanyHomeComponent } from './components/users/company/company-home/company-home.component';
+import { CompanyCatalogComponent } from './components/users/company/company-catalog/company-catalog.component';
+import { CompanyProductDetailsComponent } from './components/users/company/company-product-details/company-product-details.component';
+import { CompanyNewProductComponent } from './components/users/company/company-new-product/company-new-product.component';
+import { CompanyAnalyticsComponent } from './components/users/company/company-analytics/company-analytics.component';
+import { CompanyService } from './services/users/company.service';
 
 @NgModule({
   declarations: [
@@ -82,6 +89,12 @@ import { WorkerWarehouseComponent } from './components/users/worker/worker-wareh
     WorkerCreateComponent,
     WorkerHothouseComponent,
     WorkerWarehouseComponent,
+    CompanyDashboardComponent,
+    CompanyHomeComponent,
+    CompanyCatalogComponent,
+    CompanyProductDetailsComponent,
+    CompanyNewProductComponent,
+    CompanyAnalyticsComponent,
   ],
   imports: [
     BrowserModule,
@@ -107,6 +120,7 @@ import { WorkerWarehouseComponent } from './components/users/worker/worker-wareh
     AuthenticationService,
     AdminService,
     WorkerService,
+    CompanyService,
   ],
   bootstrap: [AppComponent],
 })
