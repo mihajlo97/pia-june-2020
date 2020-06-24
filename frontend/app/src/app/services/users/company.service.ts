@@ -8,6 +8,8 @@ import {
   ToggleProductAvailabilityRequest,
   AddProductRequest,
   AddProductResponse,
+  OrderAnalytics,
+  GetAnalyticsResponse,
 } from 'src/app/models/company';
 
 @Injectable({
@@ -59,6 +61,15 @@ export class CompanyService {
       .post<AddProductResponse>(
         `${this._companyAPI}/catalog/add`,
         req,
+        this._httpOptions
+      )
+      .toPromise();
+  }
+
+  getAnalytics(): Promise<GetAnalyticsResponse> {
+    return this.http
+      .get<GetAnalyticsResponse>(
+        `${this._companyAPI}/analytics`,
         this._httpOptions
       )
       .toPromise();

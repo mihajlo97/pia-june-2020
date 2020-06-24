@@ -50,3 +50,12 @@ export interface AddProductRequest {
 export interface AddProductResponse {
   success: boolean;
 }
+
+export interface OrderAnalytics {
+  date: Date;
+  orders: number;
+}
+
+export interface GetAnalyticsResponse {
+  data: OrderAnalytics[];
+}

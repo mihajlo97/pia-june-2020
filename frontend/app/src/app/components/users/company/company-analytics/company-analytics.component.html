@@ -1,1 +1,23 @@
-<p>company-analytics works!</p>
+<div class="d-flex justify-content-center">
+  <div *ngIf="!dataFetched">
+    <div class="spinner-border" role="status">
+      <span class="sr-only">Loading analytics...</span>
+    </div>
+  </div>
+  <div *ngIf="dataFetched && serverErrorOccurred">
+    <div class="alert alert-danger" role="alert">
+      The server encountered an error while processing your request, please try
+      again.
+    </div>
+  </div>
+  <div *ngIf="dataFetched && !serverErrorOccurred">
+    <google-chart
+      [type]="barChartType"
+      [data]="analytics"
+      [options]="chartOptions"
+      [dynamicResize]="true"
+      style="width: 60vw; height: 1080px;"
+    >
+    </google-chart>
+  </div>
+</div>

@@ -278,5 +278,11 @@ app.post(
   company.addProduct
 );
 
+app.get(
+  `${companyPath}/analytics`,
+  company.checkCompanyPermission,
+  company.getAnalytics
+);
+
 //<====[TESTING]====>
 app.get("/test/add-admin", dbTest.addMasterAdmin);

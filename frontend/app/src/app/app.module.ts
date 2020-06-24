@@ -14,6 +14,7 @@ import {
 } from 'ng-recaptcha';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ToastrModule } from 'ngx-toastr';
+import { GoogleChartsModule } from 'angular-google-charts';
 
 //App declarations
 import { AppRoutingModule } from './app-routing.module';
@@ -110,6 +111,7 @@ import { CompanyNewProductStepperComponent } from './components/users/company/co
     ToastrModule.forRoot({
       positionClass: 'toast-bottom-right',
     }),
+    GoogleChartsModule,
   ],
   providers: [
     {

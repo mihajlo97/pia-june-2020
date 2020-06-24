@@ -232,3 +232,77 @@ exports.addProduct = async (req, res) => {
     res.status(500).json(response);
   }
 };
+
+//GET @api/company/analytics
+exports.getAnalytics = async (req, res) => {
+  let response = { data: [] };
+
+  const day = 1000 * 60 * 60 * 24;
+  const now = new Date().getTime();
+  const daysAgo = 30;
+
+  const lowerBound = new Date(now - (daysAgo - 1) * day);
+  const lowerBoundRounded = new Date(
+    lowerBound.getFullYear(),
+    lowerBound.getMonth(),
+    lowerBound.getDate(),
+    0,
+    0,
+    0,
+    0
+  );
+
+  //populate data set with default values
+  for (let i = 0; i < daysAgo; i++) {
+    response.data.push({
+      date: new Date(lowerBound.getTime() + i * day),
+      orders: 0,
+    });
+  }
+
+  try {
+    const docs = await Order.find()
+      .where("manufacturer")
+      .equals(req.session.username)
+      .where("orderedOn")
+      .gte(lowerBoundRounded)
+      .select("orderedOn")
+      .sort("orderedOn")
+      .exec();
+
+    if (!docs || docs === []) {
+      console.info(
+        "[GET][RES]: @api/company/analytics\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
+        response
+      );
+      res.status(200).json(response);
+    }
+
+    //populate data set with actual data
+    for (let i = 0; i < daysAgo - 1; i++) {
+      const matching = docs.filter(
+        (doc) =>
+          doc.orderedOn.getTime() >= response.data[i].date.getTime() &&
+          doc.orderedOn.getTime() < response.data[i + 1].date.getTime()
+      );
+      response.data[i].orders = matching.length;
+    }
+    const matching = docs.filter(
+      (doc) =>
+        doc.orderedOn.getTime() >= response.data[daysAgo - 1].date.getTime()
+    );
+    response.data[daysAgo - 1].orders = matching.length;
+
+    console.info(
+      "[GET][RES]: @api/company/analytics\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
+      response
+    );
+    res.status(200).json(response);
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/company/analytics\nDatabase-Query-Exception: Query call failed.\nQuery: Retrieving company orders.\nError-Log:\n",
+      err
+    );
+    res.status(500).json(response);
+  }
+};
