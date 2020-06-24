@@ -94,13 +94,13 @@ exports.getCompanyCatalog = async (req, res) => {
   }
 };
 
-//POST @api/catalog/product
+//POST @api/company/catalog/product
 exports.getProduct = async (req, res) => {
   let response = { product: null };
 
   if (!req.body._id) {
     console.info(
-      "[POST][RES]: @api/catalog/product\nAPI-Call-Result: 400.\nResult-Origin: Request params.\n"
+      "[POST][RES]: @api/company/catalog/product\nAPI-Call-Result: 400.\nResult-Origin: Request params.\n"
     );
     return res.status(400).json(response);
   }
@@ -113,20 +113,20 @@ exports.getProduct = async (req, res) => {
 
     response.product = doc;
     console.info(
-      "[POST][RES]: @api/catalog/product\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
+      "[POST][RES]: @api/company/catalog/product\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
       response
     );
     return res.status(200).json(response);
   } catch (err) {
     console.error(
-      "[ERROR][DB]: @api/catalog/product\nDatabase-Query-Exception: Query call failed.\nQuery: Fetching product.\nError-Log:\n",
+      "[ERROR][DB]: @api/company/catalog/product\nDatabase-Query-Exception: Query call failed.\nQuery: Fetching product.\nError-Log:\n",
       err
     );
     res.status(500).json(response);
   }
 };
 
-//POST @api/catalog/product/availability
+//POST @api/company/catalog/product/availability
 exports.toggleProductAvailability = async (req, res) => {
   if (
     !req.body._id ||
@@ -134,7 +134,7 @@ exports.toggleProductAvailability = async (req, res) => {
     req.body.available === null
   ) {
     console.info(
-      "[POST][RES]: @api/catalog/product/availability\nAPI-Call-Result: 400.\nResult-Origin: Request params.\n"
+      "[POST][RES]: @api/company/catalog/product/availability\nAPI-Call-Result: 400.\nResult-Origin: Request params.\n"
     );
     return res.status(400).end();
   }
@@ -152,15 +152,83 @@ exports.toggleProductAvailability = async (req, res) => {
     }
 
     console.info(
-      "[POST][RES]: @api/catalog/product/availability\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nUpdated:\n",
+      "[POST][RES]: @api/company/catalog/product/availability\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nUpdated:\n",
       { availability: req.body.available }
     );
     return res.status(200).end();
   } catch (err) {
     console.error(
-      "[ERROR][DB]: @api/catalog/product/availability\nDatabase-Query-Exception: Query call failed.\nQuery: Updating product.\nError-Log:\n",
+      "[ERROR][DB]: @api/company/catalog/product/availability\nDatabase-Query-Exception: Query call failed.\nQuery: Updating product.\nError-Log:\n",
       err
     );
     res.status(500).end();
+  }
+};
+
+//POST @api/company/catalog/add
+exports.addProduct = async (req, res) => {
+  let response = { success: false };
+
+  if (!req.body.product) {
+    console.info(
+      "[POST][RES]: @api/company/catalog/add\nAPI-Call-Result: 400.\nResult-Origin: Request params.\n"
+    );
+    return res.status(400).json(response);
+  }
+
+  try {
+    if (
+      req.body.product.manufacturer === "" ||
+      req.body.product.name === "" ||
+      (req.body.product.type !== "seedling" &&
+        req.body.product.type !== "fertilizer") ||
+      req.body.product.unitPrice < 0 ||
+      (req.body.product.available !== true &&
+        req.body.product.available !== false) ||
+      req.body.product.quantity < 0
+    ) {
+      throw new Error("Invalid-Field-Value-Exception: req.body.product");
+    }
+
+    let product = {
+      manufacturer: req.body.product.manufacturer,
+      name: req.body.product.name,
+      type: req.body.product.type,
+      unitPrice: req.body.product.unitPrice,
+      available: req.body.product.available,
+      quantity: req.body.product.quantity,
+      comments: [],
+    };
+
+    if ("daysToGrow" in req.body.product) {
+      if (req.body.product.daysToGrow < 1) {
+        throw new Error("Invalid-Field-Value-Exception: req.body.product");
+      }
+      product.daysToGrow = req.body.product.daysToGrow;
+    }
+    if ("accelerateGrowthBy" in req.body.product) {
+      if (req.body.product.accelerateGrowthBy < 1) {
+        throw new Error("Invalid-Field-Value-Exception: req.body.product");
+      }
+      product.accelerateGrowthBy = req.body.product.accelerateGrowthBy;
+    }
+
+    const doc = await Product.create(product);
+    if (!doc) {
+      throw new Error("On-Save-Exception: Failed to save the document.");
+    }
+
+    response.success = true;
+    console.info(
+      "[POST][RES]: @api/company/catalog/add\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
+      response
+    );
+    return res.status(200).json(response);
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/company/catalog/add\nDatabase-Query-Exception: Query call failed.\nQuery: Adding new product to products.\nError-Log:\n",
+      err
+    );
+    res.status(500).json(response);
   }
 };

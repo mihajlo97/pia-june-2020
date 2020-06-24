@@ -49,10 +49,12 @@ exports.ProductSchema = new Schema(
     },
     daysToGrow: {
       type: Number,
+      min: 1,
       required: false,
     },
     accelerateGrowthBy: {
       type: Number,
+      min: 1,
       required: false,
     },
     unitPrice: {

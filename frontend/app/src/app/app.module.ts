@@ -57,6 +57,7 @@ import { CompanyProductDetailsComponent } from './components/users/company/compa
 import { CompanyNewProductComponent } from './components/users/company/company-new-product/company-new-product.component';
 import { CompanyAnalyticsComponent } from './components/users/company/company-analytics/company-analytics.component';
 import { CompanyService } from './services/users/company.service';
+import { CompanyNewProductStepperComponent } from './components/users/company/company-new-product-stepper/company-new-product-stepper.component';
 
 @NgModule({
   declarations: [
@@ -95,6 +96,7 @@ import { CompanyService } from './services/users/company.service';
     CompanyProductDetailsComponent,
     CompanyNewProductComponent,
     CompanyAnalyticsComponent,
+    CompanyNewProductStepperComponent,
   ],
   imports: [
     BrowserModule,

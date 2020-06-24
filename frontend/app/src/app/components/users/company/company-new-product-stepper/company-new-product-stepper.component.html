@@ -1,0 +1,246 @@
+<div class="bs-stepper vertical">
+  <div class="bs-stepper-header" role="tablist">
+    <div class="step" data-target="#step-one">
+      <button
+        type="button"
+        class="step-trigger"
+        role="tab"
+        aria-controls="step-one"
+        id="step-one-trigger"
+      >
+        <span class="bs-stepper-circle">1</span>
+        <span class="bs-stepper-label">Basic info</span>
+      </button>
+    </div>
+    <div class="line"></div>
+    <div class="step" data-target="#step-two">
+      <button
+        type="button"
+        class="step-trigger"
+        role="tab"
+        aria-controls="step-two"
+        id="step-two-trigger"
+      >
+        <span class="bs-stepper-circle">2</span>
+        <span class="bs-stepper-label">Product effect</span>
+      </button>
+    </div>
+    <div class="line"></div>
+    <div class="step" data-target="#step-three">
+      <button
+        type="button"
+        class="step-trigger"
+        role="tab"
+        aria-controls="step-three"
+        id="step-three-trigger"
+      >
+        <span class="bs-stepper-circle">3</span>
+        <span class="bs-stepper-label">Store details</span>
+      </button>
+    </div>
+  </div>
+  <div class="bs-stepper-content">
+    <div
+      id="step-one"
+      class="content"
+      role="tabpanel"
+      aria-labelledby="step-one-trigger"
+    >
+      <form [formGroup]="wizardStepOne">
+        <div class="form-group">
+          <label for="name"><strong>Name:</strong></label>
+          <input
+            type="text"
+            id="name"
+            class="form-control"
+            [class.is-invalid]="
+              wizardStepOne.get('name').invalid &&
+              wizardStepOne.get('name').dirty
+            "
+            style="width: 12rem;"
+            formControlName="name"
+          />
+        </div>
+        <div class="form-group">
+          <label for="type"><strong>Type:</strong></label>
+          <select
+            id="type"
+            class="form-control"
+            [class.is-invalid]="wizardStepOne.get('type').invalid"
+            style="width: 10rem;"
+            formControlName="type"
+          >
+            <option [value]="ProductType.SEEDLING">
+              Seedling
+            </option>
+            <option [value]="ProductType.FERTILIZER">
+              Fertilizer
+            </option>
+          </select>
+        </div>
+      </form>
+      <button
+        type="button"
+        class="btn btn-outline-primary"
+        style="width: 5rem;"
+        [disabled]="wizardStepOne.invalid"
+        (click)="nextStep()"
+      >
+        Next
+      </button>
+    </div>
+    <div
+      id="step-two"
+      class="content"
+      role="tabpanel"
+      aria-labelledby="step-two-trigger"
+    >
+      <form [formGroup]="wizardStepTwo">
+        <div class="form-group">
+          <label
+            *ngIf="wizardStepOne.get('type').value === ProductType.SEEDLING"
+            for="factor"
+            ><strong>Days to grow:</strong></label
+          >
+          <label
+            *ngIf="wizardStepOne.get('type').value === ProductType.FERTILIZER"
+            for="factor"
+            ><strong>Accelerate growth in days by:</strong></label
+          >
+          <input
+            type="number"
+            id="factor"
+            min="1"
+            class="form-control"
+            [class.is-invalid]="wizardStepTwo.get('factor').invalid"
+            style="width: 8rem;"
+            formControlName="factor"
+          />
+        </div>
+      </form>
+      <button
+        type="button"
+        class="btn btn-outline-secondary"
+        style="width: 5rem;"
+        (click)="prevStep()"
+      >
+        Back
+      </button>
+      <button
+        type="button"
+        class="btn btn-outline-primary ml-2"
+        style="width: 5rem;"
+        [disabled]="wizardStepTwo.invalid || wizardStepTwo.pristine"
+        (click)="nextStep()"
+      >
+        Next
+      </button>
+    </div>
+    <div
+      id="step-three"
+      class="content"
+      role="tabpanel"
+      aria-labelledby="step-three-trigger"
+    >
+      <form [formGroup]="wizardStepThree">
+        <div class="form-group">
+          <label for="price"
+            ><strong>Price per unit in cents (0.01€):</strong></label
+          >
+          <input
+            type="number"
+            min="1"
+            id="price"
+            class="form-control"
+            [class.is-invalid]="wizardStepThree.get('price').invalid"
+            style="width: 8rem;"
+            formControlName="price"
+          />
+        </div>
+        <div class="form-group">
+          <label for="quantity"><strong>Quantity in stock:</strong></label>
+          <input
+            type="number"
+            min="1"
+            id="quantity"
+            class="form-control"
+            [class.is-invalid]="wizardStepThree.get('quantity').invalid"
+            style="width: 8rem;"
+            formControlName="quantity"
+          />
+        </div>
+        <div class="form-group">
+          <label for="available"><strong>Availability:</strong></label>
+          <select
+            id="available"
+            class="form-control"
+            [class.is-invalid]="wizardStepThree.get('available').invalid"
+            style="width: 10rem;"
+            formControlName="available"
+          >
+            <option [value]="availability">
+              Available
+            </option>
+            <option [value]="!availability">
+              Not available
+            </option>
+          </select>
+        </div>
+      </form>
+      <div *ngIf="submitFail">
+        <p class="text-danger">
+          The server encountered an error while processing your request, please
+          try again.
+        </p>
+      </div>
+      <button
+        type="button"
+        style="width: 5rem;"
+        class="btn btn-outline-secondary"
+        (click)="prevStep()"
+      >
+        Back
+      </button>
+      <button
+        type="button"
+        class="btn btn-outline-primary ml-2"
+        style="width: 5rem;"
+        [disabled]="
+          wizardStepOne.invalid ||
+          wizardStepTwo.invalid ||
+          wizardStepThree.invalid ||
+          wizardStepThree.pristine
+        "
+        (click)="finishWizard()"
+      >
+        Submit
+      </button>
+    </div>
+  </div>
+</div>
+
+<div
+  class="modal fade"
+  id="successModal"
+  data-backdrop="static"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="successModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="successModalLabel">Add product</h5>
+      </div>
+      <div class="modal-body">
+        Product "{{ wizardStepOne.value.name }}" successfully added to catalog!
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" (click)="closeDialog()">
+          Ok
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

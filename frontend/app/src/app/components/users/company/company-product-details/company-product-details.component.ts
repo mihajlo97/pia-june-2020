@@ -18,7 +18,7 @@ export class CompanyProductDetailsComponent implements OnInit {
   productRequest: GetProductRequest = {} as GetProductRequest;
   product: ProductItem;
   selectForm: FormGroup;
-  averageRating: number;
+  averageRatingMessage: string = '';
 
   errorMessageDisplay: boolean = false;
 
@@ -44,7 +44,7 @@ export class CompanyProductDetailsComponent implements OnInit {
           this.product = res.product;
           this.errorMessageDisplay = false;
 
-          this.averageRating = this.calculateAverageRating();
+          this.averageRatingMessage = this.setAverageRatingMessage();
           this.selectForm.get('available').setValue(`${res.product.available}`);
           this.selectForm.get('available').valueChanges.subscribe((value) => {
             let availability = null;
@@ -97,12 +97,20 @@ export class CompanyProductDetailsComponent implements OnInit {
     });
   }
 
-  calculateAverageRating(): number {
+  setAverageRatingMessage(): string {
     let sum = 0;
     this.product.comments.forEach((comment) => {
       sum += comment.rating;
     });
 
-    return sum / this.product.comments.length;
+    let message = '';
+    if (this.product.comments.length > 0) {
+      const avg = +(sum / this.product.comments.length).toFixed(2);
+      message = `${avg} out of 10.`;
+    } else {
+      message = 'No ratings yet.';
+    }
+
+    return message;
   }
 }

@@ -272,5 +272,11 @@ app.post(
   company.toggleProductAvailability
 );
 
+app.post(
+  `${companyPath}/catalog/add`,
+  company.checkCompanyPermission,
+  company.addProduct
+);
+
 //<====[TESTING]====>
 app.get("/test/add-admin", dbTest.addMasterAdmin);

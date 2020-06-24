@@ -1,6 +1,6 @@
-<h5>Product details</h5>
 <div class="card mt-3">
   <div class="card-body">
+    <h5 class="card-title">Product details</h5>
     <div *ngIf="errorMessageDisplay">
       <div class="alert alert-danger" role="alert">
         The server encountered an error while processing your request, please
@@ -48,7 +48,7 @@
             <p>
               <strong>Average rating:</strong>
               <br />
-              {{ averageRating }} out of 10.
+              {{ averageRatingMessage }}
             </p>
             <form [formGroup]="selectForm">
               <div class="form-group">
@@ -72,6 +72,9 @@
       </div>
       <hr />
       <h5>Comments:</h5>
+      <div *ngIf="product?.comments.length === 0">
+        <p>No comments to show for this product.</p>
+      </div>
       <ul
         *ngFor="let commentItem of product?.comments"
         class="list-group list-group-flush"
