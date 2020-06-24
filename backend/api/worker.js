@@ -16,7 +16,11 @@ const TEMP_MIN = -20;
 const TEMP_MAX = 50;
 
 //[DB-COLLECTIONS]
-const Hothouse = mongoose.model("Hothouses", worker.HothouseSchema);
+const Hothouse = mongoose.model(
+  "Hothouses",
+  worker.HothouseSchema,
+  "Hothouses"
+);
 const HothouseSpot = mongoose.model("HothouseSpots", worker.HothouseSpotSchema);
 const Seedling = mongoose.model("Seedlings", worker.SeedlingSchema);
 const Warehouse = mongoose.model("Warehouses", worker.WarehouseSchema);
@@ -831,7 +835,7 @@ exports.getStoreProducts = async (req, res) => {
 exports.makeNewOrder = async (req, res) => {
   let response = { success: false };
 
-  if (!req.body.items) {
+  if (!req.body.items || !req.body.warehouse) {
     console.info(
       "[POST][RES]: @api/worker/store/order\nAPI-Call-Result: 400.\nResult-Origin: Request params.\nResponse:\n",
       response
@@ -873,6 +877,8 @@ exports.makeNewOrder = async (req, res) => {
         product: item.productID,
         quantity: item.quantity,
         groupOrderId: groupID,
+        destinationId: req.body.warehouse._id,
+        deliverTo: req.body.warehouse.location,
         accepted: false,
         status: "pending",
       });
@@ -1104,5 +1110,35 @@ exports.cancelOrder = async (req, res) => {
       err
     );
     res.status(500).end(response);
+  }
+};
+
+//GET @api/worker/warehouses
+exports.getWarehouses = async (req, res) => {
+  let response = [];
+
+  try {
+    const docs = await Warehouse.find().populate("hothouse").exec();
+    const matching = docs.filter(
+      (doc) => doc.hothouse.owner === req.session.username
+    );
+    docs.forEach((doc) => {
+      response.push({
+        _id: doc._id,
+        name: doc.hothouse.name,
+        location: doc.hothouse.location,
+      });
+    });
+
+    console.info(
+      "[GET][RES]: @api/worker/hothouses\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse: Stream-Write-OK."
+    );
+    res.status(200).json(response);
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/worker/hothouses\nDatabase-Query-Exception: Query call failed.\nQuery: Retrieving user warehouses.\nError-Log:\n",
+      err
+    );
+    res.status(500).json(response);
   }
 };

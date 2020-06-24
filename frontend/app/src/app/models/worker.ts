@@ -230,6 +230,7 @@ export interface OrderItem {
 
 export interface ConfirmOrderRequest {
   items: OrderItem[];
+  warehouse: WarehouseDeliveryInfo;
 }
 
 export interface ConfirmOrderResponse {
@@ -280,4 +281,10 @@ export interface CancelOrderRequest {
 
 export interface CancelOrderResponse {
   success: boolean;
+}
+
+export interface WarehouseDeliveryInfo {
+  _id: string;
+  name: string;
+  location: string;
 }

@@ -125,10 +125,28 @@
           <div *ngIf="cart.length === 0">
             <p>There are no items in your cart currently.</p>
           </div>
-          <span
-            ><strong>Total billing: </strong
-            >{{ calculateBilling() / 100 }}€</span
-          >
+          <p><strong>Total billing: </strong>{{ calculateBilling() / 100 }}€</p>
+          <form [formGroup]="warehouseSelect">
+            <div class="form-group">
+              <label for="select"><strong>Deliver to:</strong></label>
+              <select
+                id="select"
+                class="form-control form-control-sm"
+                style="width: 40vw;"
+                formControlName="warehouse"
+              >
+                <option
+                  *ngFor="
+                    let warehouse of warehouseStream$ | async;
+                    let id = index
+                  "
+                  [value]="id"
+                >
+                  "{{ warehouse?.name }}" - {{ warehouse?.location }}
+                </option>
+              </select>
+            </div>
+          </form>
         </div>
       </div>
       <div class="modal-footer">
@@ -136,7 +154,7 @@
           type="button"
           class="btn btn-success"
           (click)="confirmOrder()"
-          [disabled]="calculateBilling() === 0"
+          [disabled]="calculateBilling() === 0 || warehouseSelect.invalid"
         >
           Order
         </button>

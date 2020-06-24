@@ -10,10 +10,16 @@ import {
   CheckOrderHistoryResponse,
   SaveCommentRequest,
   SaveCommentResponse,
+  WarehouseDeliveryInfo,
 } from 'src/app/models/worker';
 import { WorkerService } from 'src/app/services/users/worker.service';
-import { FormBuilder, FormGroup } from '@angular/forms';
-import { map } from 'rxjs/operators';
+import {
+  FormBuilder,
+  FormGroup,
+  FormControl,
+  Validators,
+} from '@angular/forms';
+import { map, tap } from 'rxjs/operators';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 
 //use jQuery
@@ -28,8 +34,11 @@ export class WorkerStoreComponent implements OnInit {
   itemStream$: Observable<ProductItem[]>;
   selectedProduct: ProductItem = {} as ProductItem;
   inputForm: FormGroup;
+  warehouseSelect: FormGroup;
   loggedInUser: string;
   cart: CartItem[] = [];
+  warehouseStream$: Observable<WarehouseDeliveryInfo[]>;
+  warehouses: WarehouseDeliveryInfo[] = [];
 
   orderSuccess: boolean = true;
   feedbackDisabled: boolean = false;
@@ -46,8 +55,16 @@ export class WorkerStoreComponent implements OnInit {
       rating: [1],
       comment: [''],
     });
+    this.warehouseSelect = fb.group({
+      warehouse: ['', Validators.required],
+    });
     this.selectedProduct.quantity = 1;
     this.loggedInUser = auth.getLoggedInUser();
+    this.warehouseStream$ = worker.getWarehouses().pipe(
+      tap((values) => {
+        this.warehouses = values;
+      })
+    );
   }
 
   ngOnInit(): void {}
@@ -245,6 +262,9 @@ export class WorkerStoreComponent implements OnInit {
   confirmOrder(): void {
     let req: ConfirmOrderRequest = {
       items: [],
+      warehouse: this.warehouses[
+        parseInt(this.warehouseSelect.value.warehouse)
+      ],
     };
     const now = new Date();
 

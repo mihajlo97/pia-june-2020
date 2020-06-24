@@ -29,6 +29,7 @@ import {
   OrderedItem,
   CancelOrderRequest,
   CancelOrderResponse,
+  WarehouseDeliveryInfo,
 } from 'src/app/models/worker';
 import { Observable } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
@@ -304,5 +305,12 @@ export class WorkerService {
         this._httpOptions
       )
       .toPromise();
+  }
+
+  getWarehouses(): Observable<WarehouseDeliveryInfo[]> {
+    return this.http.get<WarehouseDeliveryInfo[]>(
+      `${this._workerAPI}/warehouses`,
+      this._httpOptions
+    );
   }
 }

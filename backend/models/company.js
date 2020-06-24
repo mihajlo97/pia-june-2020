@@ -44,6 +44,15 @@ exports.OrderSchema = new Schema(
       required: true,
       enum: ["pending", "in-transit", "delivered", "cancelled"],
     },
+    //binds to worker's warehouse
+    destinationId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+    },
+    deliverTo: {
+      type: String,
+      required: true,
+    },
   },
   { collection: ORDERS_COLLECTION }
 );
@@ -57,11 +66,6 @@ exports.DeliveryAgentSchema = new Schema(
         path: ORDERS_COLLECTION,
       },
     ],
-    //binds to worker's hothouse location
-    deliverTo: {
-      type: String,
-      required: true,
-    },
     deliveryDate: {
       type: Date,
       required: true,

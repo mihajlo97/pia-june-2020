@@ -195,7 +195,7 @@ exports.WarehouseSchema = new Schema(
     hothouse: {
       type: Schema.Types.ObjectId,
       required: true,
-      path: HOTHOUSES_COLLECTION,
+      ref: HOTHOUSES_COLLECTION,
     },
     items: [this.WarehouseItemSchema],
   },

@@ -251,6 +251,12 @@ app.post(
   worker.cancelOrder
 );
 
+app.get(
+  `${workerPath}/warehouses`,
+  worker.checkWorkerPermission,
+  worker.getWarehouses
+);
+
 //[USER-COMPANY-MODULE]
 const companyPath = "/api/company";
 
