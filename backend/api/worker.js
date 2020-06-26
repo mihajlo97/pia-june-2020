@@ -34,10 +34,7 @@ const ProductComment = mongoose.model(
   product.ProductCommentSchema
 );
 const Order = mongoose.model("Orders", company.OrderSchema);
-const DeliveryAgent = mongoose.model(
-  "DeliveryAgents",
-  company.DeliveryAgentSchema
-);
+const Courier = mongoose.model("Couriers", company.CourierSchema);
 const Users = mongoose.model("Users", users.UserSchema);
 
 //[MIDDLEWARE]

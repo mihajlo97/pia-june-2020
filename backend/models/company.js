@@ -3,7 +3,7 @@ const product = require("./product");
 const Schema = mongoose.Schema;
 
 const ORDERS_COLLECTION = "Orders";
-const DELIVERY_AGENTS_COLLECTION = "DeliveryAgents";
+const COURIER_COLLECTION = "Couriers";
 
 exports.OrderSchema = new Schema(
   {
@@ -57,8 +57,13 @@ exports.OrderSchema = new Schema(
   { collection: ORDERS_COLLECTION }
 );
 
-exports.DeliveryAgentSchema = new Schema(
+exports.CourierSchema = new Schema(
   {
+    //binds to company username
+    registeredTo: {
+      type: String,
+      required: true,
+    },
     orders: [
       {
         type: Schema.Types.ObjectId,
@@ -68,11 +73,11 @@ exports.DeliveryAgentSchema = new Schema(
     ],
     deliveryDate: {
       type: Date,
-      required: true,
+      required: false,
     },
     returnDate: {
       type: Date,
-      required: true,
+      required: false,
     },
     available: {
       type: Boolean,
@@ -80,5 +85,5 @@ exports.DeliveryAgentSchema = new Schema(
       default: true,
     },
   },
-  { collection: DELIVERY_AGENTS_COLLECTION }
+  { collection: COURIER_COLLECTION }
 );

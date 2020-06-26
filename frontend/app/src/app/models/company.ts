@@ -1,7 +1,5 @@
 import { ProductItem } from './worker';
 
-export const MAX_COURIER_COUNT = 5;
-
 export enum Tabs {
   HOME = 'home',
   ANALYTICS = 'analytics',
@@ -104,4 +102,18 @@ export interface RejectOrderRequest {
 
 export interface RejectOrderResponse {
   success: boolean;
+}
+
+export interface Courier {
+  _id: string;
+  registeredTo: string;
+  orders: OrderEntry[];
+  deliveryDate: Date;
+  returnDate: Date;
+  available: boolean;
+}
+
+export interface GetCouriersResponse {
+  couriers: Courier[];
+  maxCount: number;
 }

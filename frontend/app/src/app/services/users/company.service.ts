@@ -15,6 +15,7 @@ import {
   GetOrderEntriesResponse,
   RejectOrderRequest,
   RejectOrderResponse,
+  GetCouriersResponse,
 } from 'src/app/models/company';
 
 @Injectable({
@@ -88,6 +89,15 @@ export class CompanyService {
       req,
       this._httpOptions
     );
+  }
+
+  getCouriers(): Promise<GetCouriersResponse> {
+    return this.http
+      .get<GetCouriersResponse>(
+        `${this._companyAPI}/couriers`,
+        this._httpOptions
+      )
+      .toPromise();
   }
 
   rejectOrder(req: RejectOrderRequest): Promise<RejectOrderResponse> {

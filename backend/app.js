@@ -296,6 +296,12 @@ app.post(
   company.getOrdersBacklog
 );
 
+app.get(
+  `${companyPath}/couriers`,
+  company.checkCompanyPermission,
+  company.getCouriers
+);
+
 app.post(
   `${companyPath}/orders/reject`,
   company.checkCompanyPermission,

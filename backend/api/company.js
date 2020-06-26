@@ -1,7 +1,11 @@
 const mongoose = require("mongoose");
+const querystring = require("querystring");
 const product = require("../models/product");
 const company = require("../models/company");
 const users = require("../models/users");
+
+const MAX_COURIER_COUNT = 5;
+const TOM_TOM_API_KEY = "VPyWi85fBJw0vT6Gf9bXffg1BAjKVSrh";
 
 //[DB-COLLECTIONS]
 const Product = mongoose.model("Products", product.ProductSchema);
@@ -10,10 +14,7 @@ const ProductComment = mongoose.model(
   product.ProductCommentSchema
 );
 const Order = mongoose.model("Orders", company.OrderSchema);
-const DeliveryAgent = mongoose.model(
-  "DeliveryAgents",
-  company.DeliveryAgentSchema
-);
+const Courier = mongoose.model("Couriers", company.CourierSchema);
 const Users = mongoose.model("Users", users.UserSchema);
 
 //[MIDDLEWARE]
@@ -46,7 +47,7 @@ exports.checkCompanyPermission = async (req, res, next) => {
   }
 };
 
-//[API]
+// [API]
 
 //GET @api/company/catalog
 exports.getCompanyCatalog = async (req, res) => {
@@ -326,7 +327,7 @@ exports.getOrdersBacklog = async (req, res) => {
       manufacturer: req.session.username,
     })
       .populate("product")
-      .sort(`${req.body.sort === "descending" ? "-orderedOn" : "orderedOn"}`)
+      .sort(`${req.body.sort === "descending" ? "orderedOn" : "-orderedOn"}`)
       .exec();
 
     response.entries = orders.map((order) => {
@@ -346,7 +347,7 @@ exports.getOrdersBacklog = async (req, res) => {
     });
 
     console.info(
-      "[GET][RES]: @api/company/orders\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse: Stream-Write-OK."
+      "[POST][RES]: @api/company/orders\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse: Stream-Write-OK."
     );
     res.status(200).json(response);
   } catch (err) {
@@ -391,6 +392,55 @@ exports.rejectOrder = async (req, res) => {
   } catch (err) {
     console.error(
       "[ERROR][DB]: @api/company/orders/reject\nDatabase-Query-Exception: Query call failed.\nQuery: Updating orders.\nError-Log:\n",
+      err
+    );
+    res.status(500).json(response);
+  }
+};
+
+//GET @api/company/couriers
+exports.getCouriers = async (req, res) => {
+  let response = { couriers: [], maxCount: MAX_COURIER_COUNT };
+  let couriers;
+
+  try {
+    couriers = await Courier.find({
+      registeredTo: req.session.username,
+    }).exec();
+
+    //initialize and fetch new couriers if insufficient ammount of couriers exist
+    if (couriers.length < MAX_COURIER_COUNT) {
+      for (let i = couriers.length; i < MAX_COURIER_COUNT; i++) {
+        const courier = await Courier.create({
+          registeredTo: req.session.username,
+          orders: [],
+          deliveryDate: null,
+          returnDate: null,
+          available: true,
+        });
+
+        if (!courier) {
+          throw new Error("On-Save-Exception: Failed to save document.");
+        }
+      }
+
+      couriers = await Courier.find({
+        registeredTo: req.session.username,
+      }).exec();
+      if (!couriers) {
+        throw new Error("Item-Not-Found-Exception: Courier.");
+      }
+    }
+
+    response.couriers = couriers;
+    console.info(
+      "[POST][RES]: @api/company/couriers\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
+      response
+    );
+    return res.status(200).json(response);
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/company/couriers\nDatabase-Query-Exception: Query call failed.\nQuery: Retrieving couriers.\nError-Log:\n",
       err
     );
     res.status(500).json(response);

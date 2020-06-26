@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import {
-  MAX_COURIER_COUNT,
   GroupOrderEntry,
   OrderStatus,
   RejectOrderResponse,
+  GetCouriersResponse,
 } from 'src/app/models/company';
 import { CompanyService } from 'src/app/services/users/company.service';
 import { FormBuilder, FormGroup } from '@angular/forms';
@@ -32,18 +32,20 @@ export class CompanyHomeComponent implements OnInit {
   SortBy = SortBy;
   OrderStatus = OrderStatus;
   actionTaken: ActionTaken;
+  courierFetchDone: boolean = false;
 
-  maxCourierCount: number = MAX_COURIER_COUNT;
-  courierCount: number = MAX_COURIER_COUNT;
+  maxCourierCount: number = -1;
+  courierCount: number = -1;
   sortByForm: FormGroup;
   orderStream$: Observable<GroupOrderEntry[]>;
 
   constructor(private company: CompanyService, private fb: FormBuilder) {
     this.sortByForm = fb.group({
-      sort: [SortBy.DESC],
+      sort: [SortBy.ASC],
     });
     this.getOrders();
-    this.sortByForm.get('sort').valueChanges.subscribe(() => {
+    this.getCouriers();
+    this.sortByForm.get('sort').valueChanges.subscribe((value) => {
       this.getOrders();
     });
   }
@@ -52,7 +54,9 @@ export class CompanyHomeComponent implements OnInit {
 
   getOrders(): void {
     this.orderStream$ = this.company
-      .getOrderEntries({ sort: this.sortByForm.value.sort })
+      .getOrderEntries({
+        sort: this.sortByForm.get('sort').value,
+      })
       .pipe(
         map((res, index) => {
           let groupedOrders: GroupOrderEntry[] = [];
@@ -79,6 +83,32 @@ export class CompanyHomeComponent implements OnInit {
           return groupedOrders;
         })
       );
+  }
+
+  getCouriers(): void {
+    this.company
+      .getCouriers()
+      .then((res: GetCouriersResponse) => {
+        if (res.couriers) {
+          this.courierCount = 0;
+          this.maxCourierCount = res.maxCount;
+
+          res.couriers.forEach((courier) => {
+            if (courier.available) {
+              this.courierCount++;
+            }
+          });
+        }
+      })
+      .catch((err) => {
+        console.error(
+          'Fetch-Courier-Exception: Failed to fetch courier data from server.',
+          err
+        );
+      })
+      .finally(() => {
+        this.courierFetchDone = true;
+      });
   }
 
   acceptOrder(order: GroupOrderEntry): void {}

@@ -1,9 +1,16 @@
 <h5>Orders backlog</h5>
-<p [class.text-danger]="courierCount === 0">
+<div
+  *ngIf="courierCount !== -1 && courierFetchDone"
+  [class.text-danger]="courierCount === 0 || courierCount === -1"
+>
   <strong>Couriers available: </strong>
   <span>{{ courierCount }} / {{ maxCourierCount }}</span>
-</p>
-<div class="md-1">
+</div>
+<div *ngIf="courierCount === -1 && courierFetchDone" class="text-danger">
+  <strong>Error: </strong
+  ><span>Failed to retrieve courier data from server, please try again.</span>
+</div>
+<div class="my-2">
   <form [formGroup]="sortByForm">
     <div class="form-group">
       <label for="sort"><strong>Sort by:</strong></label>
@@ -75,23 +82,25 @@
           {{ order?.status | titlecase }}
         </td>
         <td class="align-middle">
-          <button
-            type="button"
-            class="btn btn-outline-success mr-2"
-            style="width: 5rem;"
-            [disabled]="courierCount === 0"
-            (click)="acceptOrder(order)"
-          >
-            Accept
-          </button>
-          <button
-            type="button"
-            class="btn btn-outline-danger my-2"
-            style="width: 5rem;"
-            (click)="rejectOrder(order)"
-          >
-            Reject
-          </button>
+          <div *ngIf="order?.status === OrderStatus.PENDING">
+            <button
+              type="button"
+              class="btn btn-outline-success mr-2"
+              style="width: 5rem;"
+              [disabled]="courierCount === 0"
+              (click)="acceptOrder(order)"
+            >
+              Accept
+            </button>
+            <button
+              type="button"
+              class="btn btn-outline-danger my-2"
+              style="width: 5rem;"
+              (click)="rejectOrder(order)"
+            >
+              Reject
+            </button>
+          </div>
         </td>
       </tr>
     </tbody>
