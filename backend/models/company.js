@@ -24,7 +24,7 @@ exports.OrderSchema = new Schema(
     product: {
       type: Schema.Types.ObjectId,
       required: true,
-      path: product.PRODUCTS_COLLECTION_KEY,
+      ref: product.PRODUCTS_COLLECTION_KEY,
     },
     quantity: {
       type: Number,
@@ -63,7 +63,7 @@ exports.DeliveryAgentSchema = new Schema(
       {
         type: Schema.Types.ObjectId,
         required: false,
-        path: ORDERS_COLLECTION,
+        ref: ORDERS_COLLECTION,
       },
     ],
     deliveryDate: {

@@ -10,6 +10,11 @@ import {
   AddProductResponse,
   OrderAnalytics,
   GetAnalyticsResponse,
+  OrderEntry,
+  GetOrderEntriesRequest,
+  GetOrderEntriesResponse,
+  RejectOrderRequest,
+  RejectOrderResponse,
 } from 'src/app/models/company';
 
 @Injectable({
@@ -70,6 +75,26 @@ export class CompanyService {
     return this.http
       .get<GetAnalyticsResponse>(
         `${this._companyAPI}/analytics`,
+        this._httpOptions
+      )
+      .toPromise();
+  }
+
+  getOrderEntries(
+    req: GetOrderEntriesRequest
+  ): Observable<GetOrderEntriesResponse> {
+    return this.http.post<GetOrderEntriesResponse>(
+      `${this._companyAPI}/orders`,
+      req,
+      this._httpOptions
+    );
+  }
+
+  rejectOrder(req: RejectOrderRequest): Promise<RejectOrderResponse> {
+    return this.http
+      .post<RejectOrderResponse>(
+        `${this._companyAPI}/orders/reject`,
+        req,
         this._httpOptions
       )
       .toPromise();

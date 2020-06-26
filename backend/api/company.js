@@ -306,3 +306,93 @@ exports.getAnalytics = async (req, res) => {
     res.status(500).json(response);
   }
 };
+
+//POST @api/company/orders
+exports.getOrdersBacklog = async (req, res) => {
+  let response = { entries: [] };
+
+  if (
+    !req.body.sort ||
+    (req.body.sort !== "ascending" && req.body.sort !== "descending")
+  ) {
+    console.info(
+      "[POST][RES]: @api/company/orders\nAPI-Call-Result: 400.\nResult-Origin: Request params.\n"
+    );
+    return res.status(400).json(response);
+  }
+
+  try {
+    const orders = await Order.find({
+      manufacturer: req.session.username,
+    })
+      .populate("product")
+      .sort(`${req.body.sort === "descending" ? "-orderedOn" : "orderedOn"}`)
+      .exec();
+
+    response.entries = orders.map((order) => {
+      return {
+        _id: order._id,
+        manufacturer: order.manufacturer,
+        orderedBy: order.orderedBy,
+        orderedOn: order.orderedOn,
+        product: order.product.name,
+        quantity: order.quantity,
+        groupOrderId: order.groupOrderId,
+        accepted: order.accepted,
+        status: order.status,
+        destinationId: order.destinationId,
+        deliverTo: order.deliverTo,
+      };
+    });
+
+    console.info(
+      "[GET][RES]: @api/company/orders\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse: Stream-Write-OK."
+    );
+    res.status(200).json(response);
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/company/orders\nDatabase-Query-Exception: Query call failed.\nQuery: Retrieving company orders.\nError-Log:\n",
+      err
+    );
+    res.status(500).json(response);
+  }
+};
+
+//POST @api/company/orders/reject
+exports.rejectOrder = async (req, res) => {
+  let response = { success: false };
+
+  if (!req.body.groupOrderId) {
+    console.info(
+      "[POST][RES]: @api/company/orders/reject\nAPI-Call-Result: 400.\nResult-Origin: Request params.\n"
+    );
+    return res.status(400).json(response);
+  }
+
+  try {
+    const docs = await Order.updateMany(
+      {
+        manufacturer: req.session.username,
+        groupOrderId: req.body.groupOrderId,
+      },
+      { $set: { accepted: false, status: "cancelled" } }
+    ).exec();
+
+    if (!docs) {
+      throw new Error("On-Update-Exception: Failed to update documents.");
+    }
+
+    response.success = true;
+    console.info(
+      "[POST][RES]: @api/company/orders/reject\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
+      response
+    );
+    return res.status(200).json(response);
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/company/orders/reject\nDatabase-Query-Exception: Query call failed.\nQuery: Updating orders.\nError-Log:\n",
+      err
+    );
+    res.status(500).json(response);
+  }
+};

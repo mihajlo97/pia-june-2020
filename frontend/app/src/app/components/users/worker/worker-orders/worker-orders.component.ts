@@ -8,6 +8,7 @@ import {
 } from 'src/app/models/worker';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { map } from 'rxjs/operators';
+import { OrderStatus } from 'src/app/models/company';
 
 //use jQuery
 declare var $: any;
@@ -18,6 +19,7 @@ declare var $: any;
   styleUrls: ['./worker-orders.component.css'],
 })
 export class WorkerOrdersComponent implements OnInit {
+  OrderStatus = OrderStatus;
   orderStream$: Observable<OrderedGroupItem[]>;
   selectedOrder: OrderedGroupItem;
   loggedInUser: string;
@@ -50,6 +52,7 @@ export class WorkerOrdersComponent implements OnInit {
                 groupOrderId: order.groupOrderId,
                 manufacturer: order.manufacturer,
                 orderedOn: new Date(order.orderedOn),
+                status: order.status,
                 products: [],
                 quantities: [],
               };

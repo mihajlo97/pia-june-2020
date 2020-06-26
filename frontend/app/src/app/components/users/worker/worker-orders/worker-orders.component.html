@@ -7,11 +7,15 @@
         <th scope="col" class="align-middle">Manufacturer</th>
         <th scope="col" class="align-middle">Ordered on</th>
         <th scope="col" class="align-middle">Order ID</th>
+        <th scope="col" class="align-middle">Status</th>
         <th scope="col" class="align-middle">Actions</th>
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let order of orderStream$ | async">
+      <tr
+        *ngFor="let order of orderStream$ | async"
+        [class.text-danger]="order?.status === OrderStatus.CANCELLED"
+      >
         <td class="align-middle">
           <p *ngFor="let product of order?.products; let i = index">
             <strong>Product:</strong> "{{ product }}"
@@ -20,19 +24,26 @@
           </p>
         </td>
         <td class="align-middle">{{ order?.manufacturer }}</td>
-        <td class="align-middle">{{ order?.orderedOn | date: "medium" }}</td>
-        <td class="align-middle">{{ (order?.groupOrderId.split("-"))[0] }}</td>
         <td class="align-middle">
-          <button
-            type="button"
-            class="btn btn-outline-danger"
-            style="width: 7rem;"
-            data-toggle="modal"
-            data-target="#cancelDialogModal"
-            (click)="selectOrder(order)"
-          >
-            Cancel
-          </button>
+          {{ order?.orderedOn | date: "mediumDate" }}
+          <br />
+          {{ order?.orderedOn | date: "mediumTime" }}
+        </td>
+        <td class="align-middle">{{ (order?.groupOrderId.split("-"))[0] }}</td>
+        <td class="align-middle">{{ order?.status | titlecase }}</td>
+        <td class="align-middle">
+          <div *ngIf="order?.status !== OrderStatus.CANCELLED">
+            <button
+              type="button"
+              class="btn btn-outline-danger"
+              style="width: 7rem;"
+              data-toggle="modal"
+              data-target="#cancelDialogModal"
+              (click)="selectOrder(order)"
+            >
+              Cancel
+            </button>
+          </div>
         </td>
       </tr>
     </tbody>

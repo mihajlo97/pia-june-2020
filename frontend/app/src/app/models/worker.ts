@@ -1,3 +1,5 @@
+import { OrderStatus } from './company';
+
 export enum Tabs {
   HOME = 'home',
   ORDERS = 'orders',
@@ -265,12 +267,14 @@ export interface OrderedItem {
   orderedOn: Date;
   product: string;
   quantity: number;
+  status: OrderStatus;
 }
 
 export interface OrderedGroupItem {
   groupOrderId: string;
   manufacturer: string;
   orderedOn: Date;
+  status: OrderStatus;
   products: string[];
   quantities: number[];
 }

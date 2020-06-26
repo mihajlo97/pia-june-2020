@@ -290,5 +290,17 @@ app.get(
   company.getAnalytics
 );
 
+app.post(
+  `${companyPath}/orders`,
+  company.checkCompanyPermission,
+  company.getOrdersBacklog
+);
+
+app.post(
+  `${companyPath}/orders/reject`,
+  company.checkCompanyPermission,
+  company.rejectOrder
+);
+
 //<====[TESTING]====>
 app.get("/test/add-admin", dbTest.addMasterAdmin);

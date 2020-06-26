@@ -1,3 +1,4 @@
+<h5>Order history - last 30 days:</h5>
 <div class="d-flex justify-content-center">
   <div *ngIf="!dataFetched">
     <div class="spinner-border" role="status">
@@ -10,7 +11,10 @@
       again.
     </div>
   </div>
-  <div *ngIf="dataFetched && !serverErrorOccurred">
+  <div
+    *ngIf="dataFetched && !serverErrorOccurred"
+    style="clip-path: inset(130px 0px); margin-top: -8rem;"
+  >
     <google-chart
       [type]="barChartType"
       [data]="analytics"

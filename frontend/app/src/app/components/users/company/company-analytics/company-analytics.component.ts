@@ -14,9 +14,7 @@ export class CompanyAnalyticsComponent implements OnInit {
 
   analytics: any[] = [];
   barChartType: ChartType = ChartType.BarChart;
-  title: string = 'Orders made in the last 30 days';
   chartOptions: any = {
-    title: this.title,
     colors: ['#0275d8'],
   };
 

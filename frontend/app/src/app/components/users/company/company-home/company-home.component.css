@@ -1,0 +1,7 @@
+.pending {
+  background-color: antiquewhite;
+}
+
+.pending:hover {
+  background-color: bisque !important;
+}

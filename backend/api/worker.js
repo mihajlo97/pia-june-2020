@@ -1037,7 +1037,8 @@ exports.getUndeliveredUserOrders = async (req, res) => {
       .where("orderedBy")
       .equals(req.body.username)
       .where("status")
-      .in(["pending", "in-transit"])
+      .in(["pending", "in-transit", "cancelled"])
+      .sort("-orderedOn")
       .cursor();
     let doc = await cursor.next();
     let docNext;
@@ -1051,6 +1052,7 @@ exports.getUndeliveredUserOrders = async (req, res) => {
         orderedItem.orderedOn = doc.orderedOn;
         orderedItem.product = productName.name;
         orderedItem.quantity = doc.quantity;
+        orderedItem.status = doc.status;
 
         res.write(JSON.stringify(orderedItem));
       }
