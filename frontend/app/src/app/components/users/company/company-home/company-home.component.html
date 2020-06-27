@@ -3,9 +3,20 @@
   *ngIf="courierCount !== -1 && courierFetchDone"
   [class.text-danger]="courierCount === 0 || courierCount === -1"
 >
-  <strong>Couriers available: </strong>
-  <span>{{ courierCount }} / {{ maxCourierCount }}</span>
+  <strong>Couriers available: </strong><br />
+  <span>{{ courierCount }} / {{ maxCourierCount }}</span
+  ><br />
+  <button
+    type="button"
+    class="btn btn-outline-primary mt-2"
+    style="width: 10rem;"
+    data-toggle="modal"
+    data-target="#courierStatusModal"
+  >
+    Courier status
+  </button>
 </div>
+<hr />
 <div *ngIf="courierCount === -1 && courierFetchDone" class="text-danger">
   <strong>Error: </strong
   ><span>Failed to retrieve courier data from server, please try again.</span>
@@ -107,6 +118,68 @@
   </table>
 </div>
 
+<!--COURIER-STATUS-MODAL-->
+<div
+  class="modal fade"
+  id="courierStatusModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="courierStatusModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="courierStatusModalLabel">Courier status</h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <ul class="list-group list-group-flush">
+          <li
+            class="list-group-item"
+            *ngFor="let courier of courierStream$ | async; let id = index"
+          >
+            <h5>Courier #{{ id + 1 }}</h5>
+            <div *ngIf="courier?.status === CourierStatus.IDLE">
+              <p>Courier ready for transit.</p>
+            </div>
+            <div *ngIf="courier?.status !== CourierStatus.IDLE">
+              <p>
+                <strong>Status:</strong><br />
+                {{
+                  courier?.status === CourierStatus.DELIVERING
+                    ? "Delivering shipment."
+                    : "Returning to headquarters."
+                }}
+              </p>
+              <p>
+                <strong>Delivery date:</strong><br />
+                {{ courier?.deliveryDate | date: "medium" }}
+              </p>
+              <p>
+                <strong>Return date:</strong><br />
+                {{ courier?.returnDate | date: "medium" }}
+              </p>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!--ACTION-FAIL-MODAL-->
 <div
   class="modal fade"
@@ -130,12 +203,14 @@
         </button>
       </div>
       <div class="modal-body">
-        The server encountered an error while processing {{ actionTaken }} order
-        request, please try again.
+        <div class="alert alert-danger" role="alert">
+          The server encountered an error while processing your
+          {{ actionTaken }} order request, please try again.
+        </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-primary" data-dismiss="modal">
-          Ok
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          Close
         </button>
       </div>
     </div>

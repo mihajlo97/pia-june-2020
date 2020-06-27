@@ -18,6 +18,10 @@ import {
   GetCouriersResponse,
   AcceptOrderRequest,
   AcceptOrderResponse,
+  DeliverOrderRequest,
+  DeliverOrderResponse,
+  ReturnToHQRequest,
+  ReturnToHQResponse,
 } from 'src/app/models/company';
 
 @Injectable({
@@ -123,6 +127,26 @@ export class CompanyService {
     return this.http
       .post<RejectOrderResponse>(
         `${this._companyAPI}/orders/reject`,
+        req,
+        this._httpOptions
+      )
+      .toPromise();
+  }
+
+  deliverOrder(req: DeliverOrderRequest): Promise<DeliverOrderResponse> {
+    return this.http
+      .post<RejectOrderResponse>(
+        `${this._companyAPI}/couriers/deliver`,
+        req,
+        this._httpOptions
+      )
+      .toPromise();
+  }
+
+  returnToHQ(req: ReturnToHQRequest): Promise<ReturnToHQResponse> {
+    return this.http
+      .post<RejectOrderResponse>(
+        `${this._companyAPI}/couriers/done`,
         req,
         this._httpOptions
       )

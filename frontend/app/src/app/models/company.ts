@@ -19,6 +19,12 @@ export enum OrderStatus {
   CANCELLED = 'cancelled',
 }
 
+export enum CourierStatus {
+  IDLE = 'idle',
+  DELIVERING = 'delivering',
+  RETURNING = 'returning',
+}
+
 export interface ProductBasicInfo {
   _id: string;
   name: string;
@@ -107,10 +113,11 @@ export interface RejectOrderResponse {
 export interface Courier {
   _id: string;
   registeredTo: string;
-  orders: OrderEntry[];
+  orders: string[];
   deliveryDate: Date;
   returnDate: Date;
   available: boolean;
+  status: CourierStatus;
 }
 
 export interface GetCouriersResponse {
@@ -127,4 +134,20 @@ export interface AcceptOrderResponse {
   success: boolean;
   returnDate: Date;
   deliveryDate: Date;
+}
+
+export interface DeliverOrderRequest {
+  _id: string;
+}
+
+export interface DeliverOrderResponse {
+  success: boolean;
+}
+
+export interface ReturnToHQRequest {
+  _id: string;
+}
+
+export interface ReturnToHQResponse {
+  success: boolean;
 }

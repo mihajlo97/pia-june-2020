@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const querystring = require("querystring");
 const request = require("request-promise-native");
 const product = require("../models/product");
 const company = require("../models/company");
@@ -467,6 +466,7 @@ exports.acceptOrder = async (req, res) => {
   let courier;
   let orders;
   let user;
+  let errorEncounteredFlag = false;
 
   //fetch courier and order documents
   try {
@@ -495,6 +495,7 @@ exports.acceptOrder = async (req, res) => {
       "[ERROR][DB]: @api/company/orders/accept\nDatabase-Query-Exception: Query call failed.\nQuery: Fetching documents from multiple collections.\nError-Log:\n",
       err
     );
+    errorEncounteredFlag = true;
     res.status(500).json(response);
   }
 
@@ -508,21 +509,107 @@ exports.acceptOrder = async (req, res) => {
     });
 
     //URL encode locations
-    const source = querystring.stringify(user.info.hq);
-    const destination = querystring.stringify(orders[0].deliverTo);
+    const source = encodeURI(user.info.hq)
+      .replace(",", "%2C")
+      .replace(" ", "%20");
+    const destination = encodeURI(orders[0].deliverTo)
+      .replace(",", "%2C")
+      .replace(" ", "%20");
 
     //geocode locations into coordinates using TomTom Search API
-    let searchRequestOptions = {
+    const sourceRequestOptions = {
       uri: `${SEARCH_API}/${source}.json?typeahead=true&key=${TOM_TOM_API_KEY}`,
       headers: { Accept: "application/json " },
       json: true,
     };
+    const destinationRequestOptions = {
+      uri: `${SEARCH_API}/${destination}.json?typeahead=true&key=${TOM_TOM_API_KEY}`,
+      headers: { Accept: "application/json " },
+      json: true,
+    };
+    const sourceResponse = await request(sourceRequestOptions);
+    const destinationResponse = await request(destinationRequestOptions);
+    const sourcePosition = sourceResponse.results[0].position;
+    const destinationPosition = destinationResponse.results[0].position;
+
+    //calculate approximate travel time using TomTom Routing API
+    const waypointsGeocodeString = encodeURI(
+      `${sourcePosition.lat},${sourcePosition.lon}:${destinationPosition.lat},${destinationPosition.lon}`
+    )
+      .replace(",", "%2C")
+      .replace(":", "	%3A")
+      .replace("\t", "");
+
+    const travelOptions = {
+      uri: `${ROUTING_API}/${waypointsGeocodeString}/json?routeType=fastest&avoid=unpavedRoads&travelMode=truck&key=${TOM_TOM_API_KEY}`,
+      headers: { Accept: "application/json " },
+      json: true,
+    };
+    const travelResponse = await request(travelOptions);
+    const departureTime = new Date(
+      travelResponse.routes[0].summary.departureTime
+    );
+    const arrivalTime = new Date(travelResponse.routes[0].summary.arrivalTime);
+    const travelTime = arrivalTime.getTime() - departureTime.getTime();
+    const returnDate = new Date(arrivalTime.getTime() + travelTime);
+
+    //bind courier instructions
+    courier.deliveryDate = arrivalTime;
+    courier.returnDate = returnDate;
+    courier.available = false;
+    courier.status = "delivering";
+
+    //attach to response
+    response.deliveryDate = arrivalTime;
+    response.returnDate = returnDate;
   } catch (err) {
     console.error(
       "[ERROR]: @api/company/orders/accept\nExternal-Request-Exception: External API call failed.\nAPI: TomTom API.\nError-Log:\n",
       err
     );
+    errorEncounteredFlag = true;
     res.status(500).json(response);
+  }
+
+  //save changes to database documents
+  try {
+    if (errorEncounteredFlag) {
+      throw new Error(
+        "Erronous-Data-Exception: Cannot save data after errors have been detected."
+      );
+    }
+
+    const courierSaved = await courier.save();
+    if (!courierSaved) {
+      throw new Error(
+        "On-Save-Exception: Failed to save document to Couriers collection."
+      );
+    }
+
+    for (let i = 0; i < orders.length; i++) {
+      const orderSaved = await orders[i].save();
+      if (!orderSaved) {
+        throw new Error(
+          "On-Save-Exception: Failed to save document to Orders collection."
+        );
+      }
+    }
+
+    //finalize response
+    response.success = true;
+    console.info(
+      "[POST][RES]: @api/company/orders/accept\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
+      response
+    );
+    return res.status(200).json(response);
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/company/orders/accept\nDatabase-Query-Exception: Query call failed.\nQuery: Saving documents.\nError-Log:\n",
+      err
+    );
+    if (!errorEncounteredFlag) {
+      res.status(500).json(response);
+    }
   }
 };
 
@@ -559,6 +646,31 @@ exports.rejectOrder = async (req, res) => {
   } catch (err) {
     console.error(
       "[ERROR][DB]: @api/company/orders/reject\nDatabase-Query-Exception: Query call failed.\nQuery: Updating orders.\nError-Log:\n",
+      err
+    );
+    res.status(500).json(response);
+  }
+};
+
+//POST @api/company/couriers/deliver
+exports.deliverOrder = async (req, res) => {
+  let response = { success: false };
+
+  if (!req.body._id) {
+    console.info(
+      "[POST][RES]: @api/company/couriers/deliver\nAPI-Call-Result: 400.\nResult-Origin: Request params.\n"
+    );
+    return res.status(400).json(response);
+  }
+
+  try {
+    const courier = await Courier.findById(req.body._id).exec();
+    if (!courier) {
+      throw new Error("Item-Not-Found-Exception: Courier.");
+    }
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/company/orders/reject\nDatabase-Query-Exception: Query call failed.\nQuery: Updating documents.\nError-Log:\n",
       err
     );
     res.status(500).json(response);

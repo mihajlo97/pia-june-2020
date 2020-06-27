@@ -8,10 +8,13 @@ import {
   AcceptOrderRequest,
   AcceptOrderResponse,
   GetOrderEntriesResponse,
+  CourierStatus,
+  DeliverOrderResponse,
+  ReturnToHQResponse,
 } from 'src/app/models/company';
 import { CompanyService } from 'src/app/services/users/company.service';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 //use jQuery
@@ -35,6 +38,7 @@ enum ActionTaken {
 export class CompanyHomeComponent implements OnInit {
   SortBy = SortBy;
   OrderStatus = OrderStatus;
+  CourierStatus = CourierStatus;
   actionTaken: ActionTaken;
   courierFetchDone: boolean = false;
 
@@ -42,7 +46,10 @@ export class CompanyHomeComponent implements OnInit {
   courierCount: number = -1;
   sortByForm: FormGroup;
   orderStream$: Observable<GroupOrderEntry[]>;
-  couriers: Courier[];
+
+  couriers: Courier[] = [] as Courier[];
+  courierStream$: Observable<Courier[]>;
+  courierSubscription: Subscription;
 
   constructor(private company: CompanyService, private fb: FormBuilder) {
     this.sortByForm = fb.group({
@@ -60,6 +67,17 @@ export class CompanyHomeComponent implements OnInit {
   ngOnInit(): void {}
 
   //helper methods
+  mapOffsetDeliveryDates(courier: Courier): Courier {
+    const timezoneOffset = 1000 * 60 * 60 * 2;
+    const deliveryBase = new Date(courier.deliveryDate).getTime();
+    const returnBase = new Date(courier.returnDate).getTime();
+
+    courier.deliveryDate = new Date(deliveryBase - timezoneOffset);
+    courier.returnDate = new Date(returnBase - timezoneOffset);
+
+    return courier;
+  }
+
   groupOrderEntries(
     res: GetOrderEntriesResponse,
     index: number
@@ -109,13 +127,16 @@ export class CompanyHomeComponent implements OnInit {
         if (res.couriers) {
           this.courierCount = 0;
           this.maxCourierCount = res.maxCount;
-          this.couriers = res.couriers;
+          this.couriers = res.couriers.map(this.mapOffsetDeliveryDates);
 
           res.couriers.forEach((courier) => {
             if (courier.available) {
               this.courierCount++;
             }
           });
+
+          this.emitCouriers();
+          this.checkUpdateDeliveries();
         }
       })
       .catch((err) => {
@@ -127,6 +148,68 @@ export class CompanyHomeComponent implements OnInit {
       .finally(() => {
         this.courierFetchDone = true;
       });
+  }
+
+  checkUpdateDeliveries() {
+    const timezoneOffset = 1000 * 60 * 60 * 2;
+    const now = new Date(Date.now() - timezoneOffset).getTime();
+
+    for (let i = 0; i < this.couriers.length; i++) {
+      if (this.couriers[i].available) {
+        continue;
+      }
+
+      if (
+        this.couriers[i].deliveryDate.getTime() <= now &&
+        this.couriers[i].status === CourierStatus.DELIVERING
+      ) {
+        this.company
+          .deliverOrder({ _id: this.couriers[i]._id })
+          .then((res: DeliverOrderResponse) => {
+            if (res.success) {
+              this.couriers[i].status = CourierStatus.RETURNING;
+              this.emitCouriers();
+            }
+          })
+          .catch((err) => {
+            console.error(
+              'Courier-Delivery-Exception: Failed to update data upon delivery.',
+              err
+            );
+          });
+      }
+
+      if (
+        this.couriers[i].returnDate.getTime() <= now &&
+        this.couriers[i].status === CourierStatus.RETURNING
+      ) {
+        this.company
+          .returnToHQ({ _id: this.couriers[i]._id })
+          .then((res: ReturnToHQResponse) => {
+            if (res.success) {
+              this.couriers[i].available = true;
+              this.couriers[i].status = CourierStatus.IDLE;
+              this.emitCouriers();
+            }
+          })
+          .catch((err) => {
+            console.error(
+              'Courier-Delivery-Exception: Failed to update data upon returning to HQ.',
+              err
+            );
+          });
+      }
+    }
+  }
+
+  emitCouriers(): void {
+    if (this.courierSubscription) {
+      this.courierSubscription.unsubscribe();
+    }
+    this.courierStream$ = new Observable((observer) => {
+      observer.next(this.couriers);
+      observer.complete();
+    });
   }
 
   notifyActionFail(err: any, action: ActionTaken): void {
@@ -159,10 +242,15 @@ export class CompanyHomeComponent implements OnInit {
           order.status = OrderStatus.IN_TRANSIT;
 
           this.couriers[index].available = false;
-          this.couriers[index].deliveryDate = res.deliveryDate;
-          this.couriers[index].returnDate = res.returnDate;
+          this.couriers[index].deliveryDate = new Date(res.deliveryDate);
+          this.couriers[index].returnDate = new Date(res.returnDate);
+          this.couriers[index] = this.mapOffsetDeliveryDates(
+            this.couriers[index]
+          );
 
           this.courierCount--;
+          this.emitCouriers();
+
           if (this.courierCount === 0) {
             this.getOrdersByStatus();
           }
@@ -187,5 +275,9 @@ export class CompanyHomeComponent implements OnInit {
       .catch((err) => {
         this.notifyActionFail(err, ActionTaken.REJECT);
       });
+  }
+
+  ngOnDestroy(): void {
+    this.courierSubscription.unsubscribe();
   }
 }

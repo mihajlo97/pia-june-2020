@@ -309,6 +309,12 @@ app.get(
 );
 
 app.post(
+  `${companyPath}/orders/accept`,
+  company.checkCompanyPermission,
+  company.acceptOrder
+);
+
+app.post(
   `${companyPath}/orders/reject`,
   company.checkCompanyPermission,
   company.rejectOrder
