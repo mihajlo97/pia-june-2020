@@ -1,11 +1,14 @@
 const mongoose = require("mongoose");
 const querystring = require("querystring");
+const request = require("request-promise-native");
 const product = require("../models/product");
 const company = require("../models/company");
 const users = require("../models/users");
 
 const MAX_COURIER_COUNT = 5;
 const TOM_TOM_API_KEY = "VPyWi85fBJw0vT6Gf9bXffg1BAjKVSrh";
+const SEARCH_API = "https://api.tomtom.com/search/2/geocode";
+const ROUTING_API = "https://api.tomtom.com/routing/1/calculateRoute";
 
 //[DB-COLLECTIONS]
 const Product = mongoose.model("Products", product.ProductSchema);
@@ -359,6 +362,170 @@ exports.getOrdersBacklog = async (req, res) => {
   }
 };
 
+//GET @api/company/orders/by-status
+exports.getOrdersBacklogByStatus = async (req, res) => {
+  let response = { entries: [] };
+
+  try {
+    const orders = await Order.find({
+      manufacturer: req.session.username,
+    })
+      .populate("product")
+      .sort("-status -orderedOn")
+      .exec();
+
+    response.entries = orders.map((order) => {
+      return {
+        _id: order._id,
+        manufacturer: order.manufacturer,
+        orderedBy: order.orderedBy,
+        orderedOn: order.orderedOn,
+        product: order.product.name,
+        quantity: order.quantity,
+        groupOrderId: order.groupOrderId,
+        accepted: order.accepted,
+        status: order.status,
+        destinationId: order.destinationId,
+        deliverTo: order.deliverTo,
+      };
+    });
+
+    console.info(
+      "[POST][RES]: @api/company/orders/by-status\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse: Stream-Write-OK."
+    );
+    res.status(200).json(response);
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/company/orders/by-status\nDatabase-Query-Exception: Query call failed.\nQuery: Retrieving company orders.\nError-Log:\n",
+      err
+    );
+    res.status(500).json(response);
+  }
+};
+
+//GET @api/company/couriers
+exports.getCouriers = async (req, res) => {
+  let response = { couriers: [], maxCount: MAX_COURIER_COUNT };
+  let couriers;
+
+  try {
+    couriers = await Courier.find({
+      registeredTo: req.session.username,
+    }).exec();
+
+    //initialize and fetch new couriers if insufficient ammount of couriers exist
+    if (couriers.length < MAX_COURIER_COUNT) {
+      for (let i = couriers.length; i < MAX_COURIER_COUNT; i++) {
+        const courier = await Courier.create({
+          registeredTo: req.session.username,
+          orders: [],
+          deliveryDate: null,
+          returnDate: null,
+          available: true,
+          status: "idle",
+        });
+
+        if (!courier) {
+          throw new Error("On-Save-Exception: Failed to save document.");
+        }
+      }
+
+      couriers = await Courier.find({
+        registeredTo: req.session.username,
+      }).exec();
+      if (!couriers) {
+        throw new Error("Item-Not-Found-Exception: Courier.");
+      }
+    }
+
+    response.couriers = couriers;
+    console.info(
+      "[POST][RES]: @api/company/couriers\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
+      response
+    );
+    return res.status(200).json(response);
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/company/couriers\nDatabase-Query-Exception: Query call failed.\nQuery: Retrieving couriers.\nError-Log:\n",
+      err
+    );
+    res.status(500).json(response);
+  }
+};
+
+//POST @api/company/orders/accept
+exports.acceptOrder = async (req, res) => {
+  let response = { success: false, returnDate: null, deliveryDate: null };
+
+  if (!req.body.courierId || !req.body.groupOrderId) {
+    console.info(
+      "[POST][RES]: @api/company/orders/accept\nAPI-Call-Result: 400.\nResult-Origin: Request params.\n"
+    );
+    return res.status(400).json(response);
+  }
+
+  let courier;
+  let orders;
+  let user;
+
+  //fetch courier and order documents
+  try {
+    courier = await Courier.findById(req.body.courierId).exec();
+    if (!courier) {
+      throw new Error("Item-Not-Found-Exception: Courier.");
+    }
+
+    orders = await Order.find({
+      groupOrderId: req.body.groupOrderId,
+    }).exec();
+    if (!orders) {
+      throw new Error("Item-Not-Found-Exception: Order.");
+    }
+
+    user = await Users.findOne({
+      username: req.session.username,
+    })
+      .populate("info")
+      .exec();
+    if (!user) {
+      throw new Error("Item-Not-Found-Exception: User.");
+    }
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/company/orders/accept\nDatabase-Query-Exception: Query call failed.\nQuery: Fetching documents from multiple collections.\nError-Log:\n",
+      err
+    );
+    res.status(500).json(response);
+  }
+
+  //set courier instructions
+  try {
+    //update delivery related fields in orders and attach them to courier
+    orders.forEach((order, index, array) => {
+      array[index].accepted = true;
+      array[index].status = "in-transit";
+      courier.orders.push(order._id);
+    });
+
+    //URL encode locations
+    const source = querystring.stringify(user.info.hq);
+    const destination = querystring.stringify(orders[0].deliverTo);
+
+    //geocode locations into coordinates using TomTom Search API
+    let searchRequestOptions = {
+      uri: `${SEARCH_API}/${source}.json?typeahead=true&key=${TOM_TOM_API_KEY}`,
+      headers: { Accept: "application/json " },
+      json: true,
+    };
+  } catch (err) {
+    console.error(
+      "[ERROR]: @api/company/orders/accept\nExternal-Request-Exception: External API call failed.\nAPI: TomTom API.\nError-Log:\n",
+      err
+    );
+    res.status(500).json(response);
+  }
+};
+
 //POST @api/company/orders/reject
 exports.rejectOrder = async (req, res) => {
   let response = { success: false };
@@ -392,55 +559,6 @@ exports.rejectOrder = async (req, res) => {
   } catch (err) {
     console.error(
       "[ERROR][DB]: @api/company/orders/reject\nDatabase-Query-Exception: Query call failed.\nQuery: Updating orders.\nError-Log:\n",
-      err
-    );
-    res.status(500).json(response);
-  }
-};
-
-//GET @api/company/couriers
-exports.getCouriers = async (req, res) => {
-  let response = { couriers: [], maxCount: MAX_COURIER_COUNT };
-  let couriers;
-
-  try {
-    couriers = await Courier.find({
-      registeredTo: req.session.username,
-    }).exec();
-
-    //initialize and fetch new couriers if insufficient ammount of couriers exist
-    if (couriers.length < MAX_COURIER_COUNT) {
-      for (let i = couriers.length; i < MAX_COURIER_COUNT; i++) {
-        const courier = await Courier.create({
-          registeredTo: req.session.username,
-          orders: [],
-          deliveryDate: null,
-          returnDate: null,
-          available: true,
-        });
-
-        if (!courier) {
-          throw new Error("On-Save-Exception: Failed to save document.");
-        }
-      }
-
-      couriers = await Courier.find({
-        registeredTo: req.session.username,
-      }).exec();
-      if (!couriers) {
-        throw new Error("Item-Not-Found-Exception: Courier.");
-      }
-    }
-
-    response.couriers = couriers;
-    console.info(
-      "[POST][RES]: @api/company/couriers\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
-      response
-    );
-    return res.status(200).json(response);
-  } catch (err) {
-    console.error(
-      "[ERROR][DB]: @api/company/couriers\nDatabase-Query-Exception: Query call failed.\nQuery: Retrieving couriers.\nError-Log:\n",
       err
     );
     res.status(500).json(response);

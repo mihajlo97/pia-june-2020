@@ -84,6 +84,11 @@ exports.CourierSchema = new Schema(
       required: true,
       default: true,
     },
+    status: {
+      type: String,
+      required: true,
+      enum: ["idle", "delivering", "returning"],
+    },
   },
   { collection: COURIER_COLLECTION }
 );

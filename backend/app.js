@@ -297,6 +297,12 @@ app.post(
 );
 
 app.get(
+  `${companyPath}/orders/by-status`,
+  company.checkCompanyPermission,
+  company.getOrdersBacklogByStatus
+);
+
+app.get(
   `${companyPath}/couriers`,
   company.checkCompanyPermission,
   company.getCouriers

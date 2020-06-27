@@ -117,3 +117,14 @@ export interface GetCouriersResponse {
   couriers: Courier[];
   maxCount: number;
 }
+
+export interface AcceptOrderRequest {
+  courierId: string;
+  groupOrderId: string;
+}
+
+export interface AcceptOrderResponse {
+  success: boolean;
+  returnDate: Date;
+  deliveryDate: Date;
+}

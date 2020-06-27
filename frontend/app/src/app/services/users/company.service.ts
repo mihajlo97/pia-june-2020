@@ -16,6 +16,8 @@ import {
   RejectOrderRequest,
   RejectOrderResponse,
   GetCouriersResponse,
+  AcceptOrderRequest,
+  AcceptOrderResponse,
 } from 'src/app/models/company';
 
 @Injectable({
@@ -91,10 +93,27 @@ export class CompanyService {
     );
   }
 
+  getOrderEntriesByStatus(): Observable<GetOrderEntriesResponse> {
+    return this.http.get<GetOrderEntriesResponse>(
+      `${this._companyAPI}/orders/by-status`,
+      this._httpOptions
+    );
+  }
+
   getCouriers(): Promise<GetCouriersResponse> {
     return this.http
       .get<GetCouriersResponse>(
         `${this._companyAPI}/couriers`,
+        this._httpOptions
+      )
+      .toPromise();
+  }
+
+  acceptOrder(req: AcceptOrderRequest): Promise<AcceptOrderResponse> {
+    return this.http
+      .post<AcceptOrderResponse>(
+        `${this._companyAPI}/orders/accept`,
+        req,
         this._httpOptions
       )
       .toPromise();
