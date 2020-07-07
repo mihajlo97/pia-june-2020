@@ -63,7 +63,7 @@
       <tr *ngFor="let item of itemStream$ | async; let id = index">
         <th scope="row" class="align-middle">{{ id + 1 }}</th>
         <td class="align-middle">{{ item?.name }}</td>
-        <td class="align-middle">{{ item?.type }}</td>
+        <td class="align-middle">{{ item?.type | titlecase }}</td>
         <td class="align-middle">{{ item?.manufacturer }}</td>
         <td class="align-middle">{{ item?.quantity }}</td>
       </tr>

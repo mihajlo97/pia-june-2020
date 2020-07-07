@@ -41,6 +41,7 @@ export class CompanyHomeComponent implements OnInit {
   CourierStatus = CourierStatus;
   actionTaken: ActionTaken;
   courierFetchDone: boolean = false;
+  readonly COURIER_REFRESH_RATE = 1000 * 60;
 
   maxCourierCount: number = -1;
   courierCount: number = -1;
@@ -62,6 +63,8 @@ export class CompanyHomeComponent implements OnInit {
     this.sortByForm.get('sort').valueChanges.subscribe((value) => {
       this.getOrders();
     });
+
+    this.intervalRefreshCheck();
   }
 
   ngOnInit(): void {}
@@ -127,7 +130,9 @@ export class CompanyHomeComponent implements OnInit {
         if (res.couriers) {
           this.courierCount = 0;
           this.maxCourierCount = res.maxCount;
-          this.couriers = res.couriers.map(this.mapOffsetDeliveryDates);
+          res.couriers.forEach((courier, index) => {
+            this.couriers[index] = this.mapOffsetDeliveryDates(courier);
+          });
 
           res.couriers.forEach((courier) => {
             if (courier.available) {
@@ -150,9 +155,29 @@ export class CompanyHomeComponent implements OnInit {
       });
   }
 
-  checkUpdateDeliveries() {
-    const timezoneOffset = 1000 * 60 * 60 * 2;
-    const now = new Date(Date.now() - timezoneOffset).getTime();
+  emitCouriers(): void {
+    if (this.courierSubscription) {
+      this.courierSubscription.unsubscribe();
+    }
+    this.courierStream$ = new Observable((observer) => {
+      observer.next(this.couriers);
+      observer.complete();
+    });
+    this.courierSubscription = this.courierStream$.subscribe();
+  }
+
+  notifyActionFail(err: any, action: ActionTaken): void {
+    console.error(
+      'On-Order-Action-Exception: Failed to execute action successfully.',
+      err
+    );
+    this.actionTaken = action;
+    $('#actionFailModal').modal('show');
+  }
+
+  //interval updates
+  checkUpdateDeliveries(): void {
+    const now = Date.now();
 
     for (let i = 0; i < this.couriers.length; i++) {
       if (this.couriers[i].available) {
@@ -169,6 +194,7 @@ export class CompanyHomeComponent implements OnInit {
             if (res.success) {
               this.couriers[i].status = CourierStatus.RETURNING;
               this.emitCouriers();
+              this.getOrders();
             }
           })
           .catch((err) => {
@@ -202,23 +228,10 @@ export class CompanyHomeComponent implements OnInit {
     }
   }
 
-  emitCouriers(): void {
-    if (this.courierSubscription) {
-      this.courierSubscription.unsubscribe();
-    }
-    this.courierStream$ = new Observable((observer) => {
-      observer.next(this.couriers);
-      observer.complete();
-    });
-  }
-
-  notifyActionFail(err: any, action: ActionTaken): void {
-    console.error(
-      'On-Order-Action-Exception: Failed to execute action successfully.',
-      err
-    );
-    this.actionTaken = action;
-    $('#actionFailModal').modal('show');
+  intervalRefreshCheck(): void {
+    setInterval(() => {
+      this.checkUpdateDeliveries();
+    }, this.COURIER_REFRESH_RATE);
   }
 
   //user actions
@@ -278,6 +291,8 @@ export class CompanyHomeComponent implements OnInit {
   }
 
   ngOnDestroy(): void {
-    this.courierSubscription.unsubscribe();
+    if (this.courierSubscription) {
+      this.courierSubscription.unsubscribe();
+    }
   }
 }

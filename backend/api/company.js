@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const request = require("request-promise-native");
 const product = require("../models/product");
 const company = require("../models/company");
+const worker = require("../models/worker");
 const users = require("../models/users");
 
 const MAX_COURIER_COUNT = 5;
@@ -18,6 +19,11 @@ const ProductComment = mongoose.model(
 const Order = mongoose.model("Orders", company.OrderSchema);
 const Courier = mongoose.model("Couriers", company.CourierSchema);
 const Users = mongoose.model("Users", users.UserSchema);
+const Warehouse = mongoose.model("Warehouses", worker.WarehouseSchema);
+const WarehouseItem = mongoose.model(
+  "WarehouseItems",
+  worker.WarehouseItemSchema
+);
 
 //[MIDDLEWARE]
 exports.checkCompanyPermission = async (req, res, next) => {
@@ -664,13 +670,138 @@ exports.deliverOrder = async (req, res) => {
   }
 
   try {
+    //fetch documents
     const courier = await Courier.findById(req.body._id).exec();
     if (!courier) {
       throw new Error("Item-Not-Found-Exception: Courier.");
     }
+
+    const orders = await Order.find({
+      _id: { $in: courier.orders },
+    })
+      .populate("product")
+      .exec();
+    if (orders.length === 0) {
+      throw new Error("Item-Not-Found-Exception: Order.");
+    }
+
+    const warehouse = await Warehouse.findOne({
+      _id: orders[0].destinationId,
+    }).exec();
+    if (!warehouse) {
+      throw new Error("Item-Not-Found-Exception: Warehouse.");
+    }
+
+    //update documents
+    orders.forEach((order, orderIndex) => {
+      //update warehouse
+      const itemIndex = warehouse.items.findIndex(
+        (item) => item.name === order.product.name
+      );
+      if (itemIndex < 0) {
+        let warehouseItem = {
+          _id: mongoose.Types.ObjectId(),
+          manufacturer: order.manufacturer,
+          type: order.product.type,
+          quantity: order.quantity,
+          name: order.product.name,
+        };
+
+        if (warehouseItem.type === "seedling") {
+          warehouseItem.daysToGrow = order.product.daysToGrow;
+        } else if (warehouseItem.type === "fertilizer") {
+          warehouseItem.accelerateGrowthBy = order.product.accelerateGrowthBy;
+        }
+
+        warehouse.items.push(warehouseItem);
+      } else {
+        warehouse.items[itemIndex].quantity += order.quantity;
+      }
+
+      //update orders
+      orders[orderIndex].status = "delivered";
+    });
+
+    //save changes
+    const warehouseSaved = await warehouse.save();
+    if (!warehouseSaved) {
+      throw new Error(
+        "On-Save-Exception: Failed to save document to Warehouses collection."
+      );
+    }
+
+    for (let i = 0; i < orders.length; i++) {
+      const orderSaved = await orders[i].save();
+      if (!orderSaved) {
+        throw new Error(
+          "On-Save-Exception: Failed to save document to Orders collection."
+        );
+      }
+    }
+
+    //update courier
+    courier.status = "returning";
+    const courierSaved = await courier.save();
+    if (!courierSaved) {
+      throw new Error(
+        "On-Save-Exception: Failed to save document to Couriers collection."
+      );
+    }
+
+    response.success = true;
+    console.info(
+      "[POST][RES]: @api/company/couriers/deliver\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
+      response
+    );
+    return res.status(200).json(response);
   } catch (err) {
     console.error(
-      "[ERROR][DB]: @api/company/orders/reject\nDatabase-Query-Exception: Query call failed.\nQuery: Updating documents.\nError-Log:\n",
+      "[ERROR][DB]: @api/company/couriers/deliver\nDatabase-Query-Exception: Query call failed.\nQuery: Updating documents.\nError-Log:\n",
+      err
+    );
+    res.status(500).json(response);
+  }
+};
+
+//POST @api/company/couriers/done
+exports.returnToHQ = async (req, res) => {
+  let response = { success: false };
+
+  if (!req.body._id) {
+    console.info(
+      "[POST][RES]: @api/company/couriers/done\nAPI-Call-Result: 400.\nResult-Origin: Request params.\n"
+    );
+    return res.status(400).json(response);
+  }
+
+  try {
+    const courier = await Courier.findById(req.body._id).exec();
+    if (!courier) {
+      throw new Error("Item-Not-Found-Exception: Courier.");
+    }
+
+    courier.orders = [];
+    courier.deliveryDate = null;
+    courier.returnDate = null;
+    courier.available = true;
+    courier.status = "idle";
+
+    const courierSaved = await courier.save();
+    if (!courierSaved) {
+      throw new Error(
+        "On-Save-Exception: Failed to save document to Couriers collection."
+      );
+    }
+
+    response.success = true;
+    console.info(
+      "[POST][RES]: @api/company/couriers/done\nAPI-Call-Result: 200.\nResult-Origin: End of call.\nResponse:\n",
+      response
+    );
+    return res.status(200).json(response);
+  } catch (err) {
+    console.error(
+      "[ERROR][DB]: @api/company/couriers/done\nDatabase-Query-Exception: Query call failed.\nQuery: Updating documents.\nError-Log:\n",
       err
     );
     res.status(500).json(response);

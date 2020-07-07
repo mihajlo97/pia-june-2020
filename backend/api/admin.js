@@ -95,10 +95,7 @@ exports.getPendingRequests = async (req, res) => {
       doc = docNext;
     }
 
-    if (itemsWritten > 0) {
-      res.write(",");
-    }
-
+    let useDelimiter = true;
     //write to stream company registration requests
     const companyRole = "company";
     cursor = CompanyItems.find()
@@ -109,6 +106,10 @@ exports.getPendingRequests = async (req, res) => {
     while (doc != null) {
       docNext = await cursor.next();
       if (doc) {
+        if (itemsWritten > 0 && useDelimiter) {
+          res.write(",");
+          useDelimiter = false;
+        }
         pendingItem.username = doc.username;
         pendingItem.email = doc.email;
         pendingItem.role = companyRole;

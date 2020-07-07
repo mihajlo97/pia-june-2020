@@ -135,7 +135,7 @@ export class CompanyService {
 
   deliverOrder(req: DeliverOrderRequest): Promise<DeliverOrderResponse> {
     return this.http
-      .post<RejectOrderResponse>(
+      .post<DeliverOrderResponse>(
         `${this._companyAPI}/couriers/deliver`,
         req,
         this._httpOptions
@@ -145,7 +145,7 @@ export class CompanyService {
 
   returnToHQ(req: ReturnToHQRequest): Promise<ReturnToHQResponse> {
     return this.http
-      .post<RejectOrderResponse>(
+      .post<ReturnToHQResponse>(
         `${this._companyAPI}/couriers/done`,
         req,
         this._httpOptions

@@ -320,5 +320,17 @@ app.post(
   company.rejectOrder
 );
 
+app.post(
+  `${companyPath}/couriers/deliver`,
+  company.checkCompanyPermission,
+  company.deliverOrder
+);
+
+app.post(
+  `${companyPath}/couriers/done`,
+  company.checkCompanyPermission,
+  company.returnToHQ
+);
+
 //<====[TESTING]====>
 app.get("/test/add-admin", dbTest.addMasterAdmin);
