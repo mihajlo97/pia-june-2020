@@ -141,6 +141,9 @@ export class CompanyHomeComponent implements OnInit {
           });
 
           this.emitCouriers();
+          if (this.courierCount === 0) {
+            this.getOrdersByStatus();
+          }
           this.checkUpdateDeliveries();
         }
       })
@@ -279,7 +282,11 @@ export class CompanyHomeComponent implements OnInit {
       .rejectOrder({ groupOrderId: order.groupOrderId })
       .then((res: RejectOrderResponse) => {
         if (res.success) {
-          this.getOrders();
+          if (this.courierCount > 0) {
+            this.getOrders();
+          } else {
+            this.getOrdersByStatus();
+          }
         } else {
           this.actionTaken = ActionTaken.REJECT;
           $('#actionFailModal').modal('show');

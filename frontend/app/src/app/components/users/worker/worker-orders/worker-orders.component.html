@@ -32,7 +32,7 @@
         <td class="align-middle">{{ (order?.groupOrderId.split("-"))[0] }}</td>
         <td class="align-middle">{{ order?.status | titlecase }}</td>
         <td class="align-middle">
-          <div *ngIf="order?.status !== OrderStatus.CANCELLED">
+          <div *ngIf="order?.status === OrderStatus.PENDING">
             <button
               type="button"
               class="btn btn-outline-danger"

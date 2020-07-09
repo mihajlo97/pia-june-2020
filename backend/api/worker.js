@@ -1121,7 +1121,7 @@ exports.getWarehouses = async (req, res) => {
     const matching = docs.filter(
       (doc) => doc.hothouse.owner === req.session.username
     );
-    docs.forEach((doc) => {
+    matching.forEach((doc) => {
       response.push({
         _id: doc._id,
         name: doc.hothouse.name,
