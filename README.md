@@ -1,7 +1,9 @@
 A prototype web application built on the MEAN stack that provides an online service for aggriculture management with a built in store.
 
 Frontend: HTML 5, CSS 3, JS (EcmaScript 2016+ standard), Angular 10, Boostrap 4
+
 Backend: NodeJS 14, Express.JS
+
 Database: MongoDB 4
 
 Live demo:
